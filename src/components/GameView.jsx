@@ -67,12 +67,14 @@ export default function GameView({
     return geo;
   };
 
-  const handleMarkFound = async () => {
+  const handleMarkFound = async (withoutLocation = false) => {
     if (!selected) return;
     setBusy(true);
     setError(null);
     try {
-      const geo = await captureLocation();
+      const geo = withoutLocation
+        ? { latitude: null, longitude: null, label: null }
+        : await captureLocation();
       await markFound(selected.code, geo);
       closeModal();
     } catch (err) {
@@ -177,7 +179,8 @@ export default function GameView({
           state={selected}
           finding={findingForSelected}
           onClose={closeModal}
-          onMarkFound={handleMarkFound}
+          onMarkFound={() => handleMarkFound(false)}
+          onMarkWithoutLocation={() => handleMarkFound(true)}
           onAddLocation={handleAddLocation}
           onUnmark={handleUnmark}
           busy={busy}

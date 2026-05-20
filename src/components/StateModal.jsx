@@ -7,6 +7,7 @@ export default function StateModal({
   finding,
   onClose,
   onMarkFound,
+  onMarkWithoutLocation,
   onAddLocation,
   onUnmark,
   busy,
@@ -56,8 +57,11 @@ export default function StateModal({
             {!hasLocation && (
               <>
                 <p className="location-missing">No GPS saved for this plate yet.</p>
+                <p className="location-hint">
+                  Tap Allow if your phone asks — Ask in Settings is OK.
+                </p>
                 <button type="button" className="btn-primary" onClick={onAddLocation} disabled={busy}>
-                  {busy ? 'Getting location…' : 'Add location now'}
+                  {busy ? 'Waiting for location…' : 'Add location now'}
                 </button>
               </>
             )}
@@ -66,9 +70,22 @@ export default function StateModal({
             </button>
           </div>
         ) : (
-          <button type="button" className="btn-primary" onClick={onMarkFound} disabled={busy}>
-            {busy ? 'Getting location…' : 'I spotted this plate!'}
-          </button>
+          <>
+            <p className="location-hint">
+              When your phone asks, tap <strong>Allow</strong>. Keeping Safari on &ldquo;Ask&rdquo; for websites is fine.
+            </p>
+            <button type="button" className="btn-primary" onClick={onMarkFound} disabled={busy}>
+              {busy ? 'Waiting for location…' : 'I spotted this plate!'}
+            </button>
+            <button
+              type="button"
+              className="btn-text location-skip"
+              onClick={onMarkWithoutLocation}
+              disabled={busy}
+            >
+              Save without map location
+            </button>
+          </>
         )}
       </div>
     </div>

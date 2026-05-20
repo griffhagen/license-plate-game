@@ -1,7 +1,7 @@
 const GEO_ERRORS = {
-  1: 'Location permission denied. On iPhone: Settings → Safari → Location → Allow, or enable Location for this app.',
-  2: 'Location unavailable. Try again outdoors or check that Location Services are on.',
-  3: 'Location timed out. Try again in a moment.',
+  1: 'Location was blocked for this site. Tap the button again and choose Allow when your phone asks — you can keep Safari set to Ask for all websites. If you previously tapped Don\'t Allow, reset only this site: in Safari, tap the AA icon in the address bar → Website Settings → Location → Ask.',
+  2: 'Location unavailable right now. Try again outdoors or move somewhere with a clearer signal.',
+  3: 'Location timed out. Tap try again — when your phone asks, tap Allow.',
 };
 
 function getPosition(options) {
@@ -45,8 +45,8 @@ async function reverseGeocodeLabel(latitude, longitude) {
 }
 
 /**
- * Best-effort GPS for road trips. Tries a quick fix first (works better on iPhone),
- * then high accuracy. Returns { latitude, longitude, label, errorMessage }.
+ * One GPS request per tap so iOS "Ask" can show a single permission prompt.
+ * Only retries on timeout/unavailable — not after permission denied.
  */
 export async function getCurrentLocation() {
   if (!navigator.geolocation) {
@@ -58,13 +58,11 @@ export async function getCurrentLocation() {
     };
   }
 
-  const attempts = [
-    { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 120000 },
-  ];
+  const primary = { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 };
+  const retry = { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 };
 
   let lastCode = null;
-  for (const options of attempts) {
+  for (const [index, options] of [primary, retry].entries()) {
     try {
       const pos = await getPosition(options);
       const { latitude, longitude } = pos.coords;
@@ -72,6 +70,11 @@ export async function getCurrentLocation() {
       return { latitude, longitude, label, errorMessage: null };
     } catch (err) {
       lastCode = err?.code ?? null;
+      // Permission denied — do not fire a second request (breaks "Ask" on iPhone)
+      if (lastCode === 1) break;
+      // Only retry once on timeout or unavailable
+      if (index === 0 && (lastCode === 2 || lastCode === 3)) continue;
+      break;
     }
   }
 
@@ -79,6 +82,6 @@ export async function getCurrentLocation() {
     latitude: null,
     longitude: null,
     label: null,
-    errorMessage: GEO_ERRORS[lastCode] || 'Could not get your location. Check permissions and try again.',
+    errorMessage: GEO_ERRORS[lastCode] || 'Could not get your location. Tap try again and choose Allow when asked.',
   };
 }
