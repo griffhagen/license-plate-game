@@ -39,7 +39,7 @@ Host the app so anyone can play from one URL (HTTPS, multiplayer, iPhone home sc
    | Field | Value |
    |--------|--------|
    | **Runtime** | Node |
-   | **Build Command** | `npm install && npm run build` |
+   | **Build Command** | `npm install --include=dev && npm run build` |
    | **Start Command** | `npm start` |
    | **Health Check Path** | `/api/health` |
 
@@ -72,6 +72,7 @@ To **keep game data** across deploys (paid):
 
 ## Troubleshooting
 
+- **Build fails with `vite: not found`** — build must install dev deps: `npm install --include=dev && npm run build` (already in `render.yaml`).
 - **Build fails on `better-sqlite3`** — ensure Runtime is **Node** (not Docker static).
 - **Blank page** — check deploy logs; confirm build finished and `dist/` exists.
 - **WebSockets not updating** — use the Render HTTPS URL, not `http://`.
