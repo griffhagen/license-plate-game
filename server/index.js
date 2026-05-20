@@ -13,6 +13,7 @@ import {
   getFindings,
   addFinding,
   removeFinding,
+  restoreGame,
 } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -60,6 +61,51 @@ function broadcastGame(gameId) {
   if (payload) io.to(game.id).emit('game:update', payload);
   return payload;
 }
+
+app.post('/api/games/import', (req, res) => {
+  const { backup, playerName } = req.body;
+  const game = backup?.game;
+  if (!game?.name?.trim() || !Array.isArray(game.findings)) {
+    return res.status(400).json({ error: 'Invalid backup data' });
+  }
+  if (!playerName?.trim()) {
+    return res.status(400).json({ error: 'Your name is required to restore' });
+  }
+
+  let gameId = game.id ? normalizeGameId(game.id) : nanoid(8).toLowerCase();
+  if (getGame(gameId)) {
+    gameId = nanoid(8).toLowerCase();
+  }
+
+  const players = Array.isArray(game.players) && game.players.length > 0
+    ? game.players
+    : [{ id: nanoid(12), name: playerName.trim(), joinedAt: new Date().toISOString() }];
+
+  const importerInList = players.some(
+    (p) => p.name?.trim().toLowerCase() === playerName.trim().toLowerCase()
+  );
+  const playerId = importerInList
+    ? players.find((p) => p.name?.trim().toLowerCase() === playerName.trim().toLowerCase()).id
+    : nanoid(12);
+
+  if (!importerInList) {
+    players.push({ id: playerId, name: playerName.trim(), joinedAt: new Date().toISOString() });
+  }
+
+  try {
+    restoreGame({
+      id: gameId,
+      name: game.name.trim(),
+      players,
+      findings: game.findings,
+    });
+    const payload = gamePayload(gameId);
+    res.json({ ...payload, playerId, restored: true, previousId: game.id || null });
+  } catch (err) {
+    console.error('Import failed:', err);
+    return res.status(500).json({ error: 'Could not restore backup' });
+  }
+});
 
 app.post('/api/games', (req, res) => {
   const { name, playerName } = req.body;

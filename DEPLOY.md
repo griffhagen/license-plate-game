@@ -67,6 +67,7 @@ To **keep game data** across deploys (paid):
 ## After deploy
 
 - Share the Render URL; friends use **Join Game** with the code or link.
+- **Export** your trip from the game screen periodically; **Restore** from the home screen if Render resets the database (free tier) or after a redeploy.
 - On iPhone: Safari → **Share** → **Add to Home Screen** (HTTPS is required for GPS).
 - Redeploys: push to `main`; Render rebuilds automatically if auto-deploy is on.
 

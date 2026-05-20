@@ -85,4 +85,32 @@ export function removeFinding(gameId, stateCode) {
   return db.prepare('DELETE FROM findings WHERE game_id = ? AND state_code = ?').run(gameId, stateCode);
 }
 
+export function restoreGame({ id, name, players, findings }) {
+  const insertFinding = db.prepare(`
+    INSERT INTO findings (game_id, state_code, player_id, player_name, latitude, longitude, location_label, found_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const run = db.transaction(() => {
+    createGame(id, name);
+    for (const p of players) {
+      addPlayer(p.id, id, p.name);
+    }
+    for (const f of findings) {
+      insertFinding.run(
+        id,
+        f.stateCode,
+        f.playerId,
+        f.playerName,
+        f.latitude ?? null,
+        f.longitude ?? null,
+        f.locationLabel ?? null,
+        f.foundAt || new Date().toISOString()
+      );
+    }
+  });
+
+  run();
+}
+
 export default db;

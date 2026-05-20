@@ -102,6 +102,16 @@ export function useGame() {
     setPlayerId(null);
   };
 
+  const importBackup = async (backup, playerName) => {
+    setError(null);
+    const data = await api.importGame(backup, playerName);
+    const session = { gameId: data.id, playerId: data.playerId, playerName };
+    saveSession(session);
+    applyGame(data, data.playerId);
+    clearJoinFromUrl();
+    return data;
+  };
+
   const markFound = async (stateCode, geo) => {
     const session = loadSession();
     if (!game?.id || !session) return;
@@ -131,6 +141,7 @@ export function useGame() {
     startGame,
     joinExisting,
     leaveGame,
+    importBackup,
     markFound,
     unmarkFound,
   };

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { getJoinGameIdFromUrl } from '../utils/joinUrl';
+import { readBackupFile } from '../utils/gameBackup';
 
-export default function HomeScreen({ startGame, joinExisting, error, setError }) {
+export default function HomeScreen({ startGame, joinExisting, importBackup, error, setError }) {
   const joinFromUrl = getJoinGameIdFromUrl();
   const [mode, setMode] = useState(joinFromUrl ? 'join' : 'start');
   const [gameName, setGameName] = useState('');
@@ -15,6 +16,8 @@ export default function HomeScreen({ startGame, joinExisting, error, setError })
     }
   }, [joinFromUrl]);
   const [submitting, setSubmitting] = useState(false);
+  const [restoreName, setRestoreName] = useState('');
+  const fileInputRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,6 +112,55 @@ export default function HomeScreen({ startGame, joinExisting, error, setError })
           {submitting ? 'Loading…' : mode === 'start' ? 'Create & Play' : 'Join Trip'}
         </button>
       </form>
+
+      <section className="restore-section">
+        <h2>Restore saved trip</h2>
+        <p className="restore-hint">
+          Upload a backup file you exported earlier to continue your progress (new game code if the old trip was lost on the server).
+        </p>
+        <label>
+          Your name
+          <input
+            type="text"
+            placeholder="Alex"
+            value={restoreName}
+            onChange={(e) => setRestoreName(e.target.value)}
+            maxLength={30}
+          />
+        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          className="restore-file-input"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setError(null);
+            setSubmitting(true);
+            try {
+              if (!restoreName.trim()) {
+                throw new Error('Enter your name above before restoring');
+              }
+              const backup = await readBackupFile(file);
+              await importBackup(backup, restoreName.trim());
+            } catch (err) {
+              setError(err.message);
+            } finally {
+              setSubmitting(false);
+              e.target.value = '';
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="btn-secondary restore-btn"
+          disabled={submitting}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {submitting ? 'Restoring…' : 'Choose backup file…'}
+        </button>
+      </section>
 
       <section className="home-features">
         <div className="feature">

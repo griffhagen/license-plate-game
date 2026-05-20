@@ -20,9 +20,9 @@ export default function StateGrid({ findings, onSelect }) {
             <div className="cell-plate-wrap">
               <PlateImage code={state.code} size="sm" className="cell-plate" />
               <span className="cell-code">{state.code}</span>
+              {found && <span className="cell-check">✓</span>}
+              {state.rarity >= 8 && !found && <span className="cell-rare">★</span>}
             </div>
-            {found && <span className="cell-check">✓</span>}
-            {state.rarity >= 8 && !found && <span className="cell-rare">★</span>}
           </button>
         );
       })}

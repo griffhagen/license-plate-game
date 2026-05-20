@@ -7,6 +7,7 @@ import MapPage from './MapPage';
 import GameNav from './GameNav';
 import { getCurrentLocation } from '../utils/geo';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
+import { downloadGameBackup } from '../utils/gameBackup';
 
 export default function GameView({ game, leaveGame, markFound, unmarkFound, error, setError }) {
   const [view, setView] = useState('tracker');
@@ -80,16 +81,29 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
   return (
     <div className="app game game-with-nav">
       <header className="game-header">
-        <div>
+        <div className="game-header-main">
           <h1>{game.name}</h1>
-          <button type="button" className="btn-text" onClick={() => setShowShare((s) => !s)}>
-            {showShare ? 'Hide invite' : 'Invite players'}
-          </button>
+          <div className="game-header-actions">
+            <button type="button" className="btn-text" onClick={() => setShowShare((s) => !s)}>
+              {showShare ? 'Hide invite' : 'Invite'}
+            </button>
+            <button
+              type="button"
+              className="btn-text"
+              onClick={() => downloadGameBackup(game)}
+            >
+              Export
+            </button>
+            <button type="button" className="btn-ghost" onClick={leaveGame}>
+              Leave
+            </button>
+          </div>
         </div>
-        <button type="button" className="btn-ghost" onClick={leaveGame}>
-          Leave
-        </button>
       </header>
+
+      <p className="backup-hint">
+        Export saves your progress to this phone. Restore it from the home screen if the server was reset.
+      </p>
 
       {showShare && (
         <SharePanel gameId={game.id} gameName={game.name} players={game.players} />

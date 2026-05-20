@@ -36,3 +36,10 @@ export function addFinding(gameId, body) {
 export function removeFinding(gameId, stateCode) {
   return request(`/games/${gameId}/findings/${stateCode}`, { method: 'DELETE' });
 }
+
+export function importGame(backup, playerName) {
+  return request('/games/import', {
+    method: 'POST',
+    body: JSON.stringify({ backup, playerName }),
+  });
+}
