@@ -6,10 +6,19 @@ import StateModal from './StateModal';
 import MapPage from './MapPage';
 import GameNav from './GameNav';
 import { getCurrentLocation } from '../utils/geo';
+import { hasGeoCoords } from '../utils/findingLocation';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { downloadGameBackup } from '../utils/gameBackup';
 
-export default function GameView({ game, leaveGame, markFound, unmarkFound, error, setError }) {
+export default function GameView({
+  game,
+  leaveGame,
+  markFound,
+  unmarkFound,
+  addLocationToFinding,
+  error,
+  setError,
+}) {
   const [view, setView] = useState('tracker');
   const [selected, setSelected] = useState(null);
   const [selectedFinding, setSelectedFinding] = useState(null);
@@ -23,9 +32,7 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
     }
   }, [restoreMsg]);
 
-  const mapCount = game.findings.filter(
-    (f) => f.latitude != null && f.longitude != null
-  ).length;
+  const mapCount = game.findings.filter(hasGeoCoords).length;
 
   useEffect(() => {
     const joinId = getJoinGameIdFromUrl();
@@ -52,13 +59,36 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
     setSelectedFinding(null);
   };
 
+  const captureLocation = async () => {
+    const geo = await getCurrentLocation();
+    if (geo.latitude == null || geo.longitude == null) {
+      throw new Error(geo.errorMessage || 'Could not get your location.');
+    }
+    return geo;
+  };
+
   const handleMarkFound = async () => {
     if (!selected) return;
     setBusy(true);
     setError(null);
     try {
-      const geo = await getCurrentLocation();
+      const geo = await captureLocation();
       await markFound(selected.code, geo);
+      closeModal();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleAddLocation = async () => {
+    if (!selected) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const geo = await captureLocation();
+      await addLocationToFinding(selected.code, geo);
       closeModal();
     } catch (err) {
       setError(err.message);
@@ -148,6 +178,7 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
           finding={findingForSelected}
           onClose={closeModal}
           onMarkFound={handleMarkFound}
+          onAddLocation={handleAddLocation}
           onUnmark={handleUnmark}
           busy={busy}
         />

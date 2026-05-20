@@ -1,6 +1,12 @@
+import { normalizeFinding } from './findingLocation.js';
+
 export const BACKUP_VERSION = 1;
 
 export function buildGameBackup(game) {
+  const findings = (game.findings || [])
+    .map(normalizeFinding)
+    .filter(Boolean);
+
   return {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
@@ -9,7 +15,7 @@ export function buildGameBackup(game) {
       name: game.name,
       createdAt: game.createdAt,
       players: game.players,
-      findings: game.findings,
+      findings,
     },
   };
 }
@@ -37,6 +43,7 @@ export function parseGameBackup(raw) {
   if (!Array.isArray(game.players)) {
     game.players = [];
   }
+  game.findings = game.findings.map(normalizeFinding).filter(Boolean);
   return data;
 }
 

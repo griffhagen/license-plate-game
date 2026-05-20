@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { STATE_BY_CODE } from '../data/states';
 import { getPlateImageUrl } from '../data/plateImages';
 import PlateImage from './PlateImage';
+import { hasGeoCoords } from '../utils/findingLocation';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -56,9 +57,7 @@ export default function MapPage({ findings }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
 
-  const geoFindings = findings.filter(
-    (f) => f.latitude != null && f.longitude != null
-  );
+  const geoFindings = findings.filter(hasGeoCoords);
 
   useEffect(() => {
     if (!containerRef.current) return;

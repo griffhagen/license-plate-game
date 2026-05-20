@@ -73,12 +73,45 @@ export function getFindings(gameId) {
     .all(gameId);
 }
 
+function coerceCoord(value) {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function coerceFindingCoords({ latitude, longitude, locationLabel }) {
+  return {
+    latitude: coerceCoord(latitude),
+    longitude: coerceCoord(longitude),
+    locationLabel: locationLabel ? String(locationLabel).trim() : null,
+  };
+}
+
 export function addFinding({ gameId, stateCode, playerId, playerName, latitude, longitude, locationLabel }) {
+  const coords = coerceFindingCoords({ latitude, longitude, locationLabel });
   const stmt = db.prepare(`
     INSERT INTO findings (game_id, state_code, player_id, player_name, latitude, longitude, location_label)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
-  return stmt.run(gameId, stateCode, playerId, playerName, latitude ?? null, longitude ?? null, locationLabel ?? null);
+  return stmt.run(
+    gameId,
+    stateCode,
+    playerId,
+    playerName,
+    coords.latitude,
+    coords.longitude,
+    coords.locationLabel
+  );
+}
+
+export function updateFindingLocation({ gameId, stateCode, latitude, longitude, locationLabel }) {
+  const coords = coerceFindingCoords({ latitude, longitude, locationLabel });
+  return db
+    .prepare(
+      `UPDATE findings SET latitude = ?, longitude = ?, location_label = ?
+       WHERE game_id = ? AND state_code = ?`
+    )
+    .run(coords.latitude, coords.longitude, coords.locationLabel, gameId, stateCode);
 }
 
 export function removeFinding(gameId, stateCode) {
@@ -104,14 +137,19 @@ export function restoreGame({ id, name, players, findings }) {
       addPlayer(p.id, id, p.name);
     }
     for (const f of findings) {
+      const coords = coerceFindingCoords({
+        latitude: f.latitude,
+        longitude: f.longitude,
+        locationLabel: f.locationLabel,
+      });
       insertFinding.run(
         id,
         f.stateCode,
         f.playerId,
         f.playerName,
-        f.latitude ?? null,
-        f.longitude ?? null,
-        f.locationLabel ?? null,
+        coords.latitude,
+        coords.longitude,
+        coords.locationLabel,
         f.foundAt || new Date().toISOString()
       );
     }

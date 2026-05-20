@@ -1,15 +1,18 @@
 import { rarityLabel } from '../data/states';
 import PlateImage from './PlateImage';
+import { hasGeoCoords } from '../utils/findingLocation';
 
 export default function StateModal({
   state,
   finding,
   onClose,
   onMarkFound,
+  onAddLocation,
   onUnmark,
   busy,
 }) {
   const isFound = Boolean(finding);
+  const hasLocation = isFound && hasGeoCoords(finding);
 
   return (
     <div className="modal-backdrop" onClick={onClose} role="presentation">
@@ -40,7 +43,7 @@ export default function StateModal({
             {finding.locationLabel && (
               <p className="found-location">📍 {finding.locationLabel}</p>
             )}
-            {(finding.latitude != null && finding.longitude != null) && (
+            {hasLocation && (
               <a
                 className="map-link"
                 href={`https://maps.apple.com/?ll=${finding.latitude},${finding.longitude}`}
@@ -49,6 +52,14 @@ export default function StateModal({
               >
                 Open in Maps
               </a>
+            )}
+            {!hasLocation && (
+              <>
+                <p className="location-missing">No GPS saved for this plate yet.</p>
+                <button type="button" className="btn-primary" onClick={onAddLocation} disabled={busy}>
+                  {busy ? 'Getting location…' : 'Add location now'}
+                </button>
+              </>
             )}
             <button type="button" className="btn-ghost danger" onClick={onUnmark} disabled={busy}>
               Remove finding

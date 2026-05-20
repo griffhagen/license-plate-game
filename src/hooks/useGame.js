@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import * as api from '../api';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
+import { hasGeoCoords } from '../utils/findingLocation';
 
 const SESSION_KEY = 'plate-game-session';
 
@@ -110,15 +111,20 @@ export function useGame() {
     saveSession(session);
     applyGame(data, data.playerId);
     clearJoinFromUrl();
+    const mapSpots = data.findings.filter(hasGeoCoords).length;
+    const locNote =
+      mapSpots > 0
+        ? ` ${mapSpots} map location${mapSpots !== 1 ? 's' : ''} included.`
+        : '';
     if (data.newGameCode) {
       sessionStorage.setItem(
         'plate-restore-msg',
-        `Trip restored with ${data.findings.length} plates. New game code: ${data.id} — share this code with your group.`
+        `Trip restored with ${data.findings.length} plates.${locNote} New game code: ${data.id} — share this code with your group.`
       );
     } else {
       sessionStorage.setItem(
         'plate-restore-msg',
-        `Trip restored with ${data.findings.length} plates found.`
+        `Trip restored with ${data.findings.length} plates found.${locNote}`
       );
     }
     return data;
@@ -133,9 +139,15 @@ export function useGame() {
       playerName: session.playerName,
       latitude: geo?.latitude,
       longitude: geo?.longitude,
-      locationLabel: geo?.label,
+      locationLabel: geo?.label ?? null,
     });
     applyGame(data, session.playerId);
+  };
+
+  const addLocationToFinding = async (stateCode, geo) => {
+    if (!game?.id) return;
+    const data = await api.updateFindingLocation(game.id, stateCode, geo);
+    applyGame(data, playerId);
   };
 
   const unmarkFound = async (stateCode) => {
@@ -156,5 +168,6 @@ export function useGame() {
     importBackup,
     markFound,
     unmarkFound,
+    addLocationToFinding,
   };
 }

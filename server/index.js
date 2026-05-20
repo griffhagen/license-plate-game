@@ -12,8 +12,10 @@ import {
   getPlayers,
   getFindings,
   addFinding,
+  updateFindingLocation,
   removeFinding,
   restoreGame,
+  coerceFindingCoords,
 } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -87,22 +89,27 @@ function prepareRestoreData(game, playerName) {
   const seenStates = new Set();
   const findings = (game.findings || [])
     .map((f) => {
-      const stateCode = String(f.stateCode || '')
+      const stateCode = String(f.stateCode || f.state_code || '')
         .trim()
         .toUpperCase();
       if (!stateCode || stateCode.length !== 2) return null;
-      const mappedPlayerId = idMap.get(f.playerId) || playerId;
+      const mappedPlayerId = idMap.get(f.playerId ?? f.player_id) || playerId;
       const owner =
         players.find((p) => p.id === mappedPlayerId) ||
-        players.find((p) => p.name === f.playerName);
+        players.find((p) => p.name === (f.playerName || f.player_name));
+      const coords = coerceFindingCoords({
+        latitude: f.latitude ?? f.lat,
+        longitude: f.longitude ?? f.lng ?? f.lon,
+        locationLabel: f.locationLabel ?? f.location_label ?? f.label,
+      });
       return {
         stateCode,
         playerId: mappedPlayerId,
-        playerName: String(f.playerName || owner?.name || importer).trim(),
-        latitude: f.latitude ?? null,
-        longitude: f.longitude ?? null,
-        locationLabel: f.locationLabel ?? null,
-        foundAt: f.foundAt || new Date().toISOString(),
+        playerName: String(f.playerName || f.player_name || owner?.name || importer).trim(),
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        locationLabel: coords.locationLabel,
+        foundAt: f.foundAt || f.found_at || new Date().toISOString(),
       };
     })
     .filter((f) => {
@@ -192,6 +199,27 @@ app.post('/api/games/:id/join', (req, res) => {
   res.json({ ...gamePayload(game.id), playerId });
 });
 
+app.patch('/api/games/:id/findings/:stateCode', (req, res) => {
+  const game = getGame(normalizeGameId(req.params.id));
+  if (!game) return res.status(404).json({ error: 'Game not found' });
+  const stateCode = String(req.params.stateCode || '').trim().toUpperCase();
+  const { latitude, longitude, locationLabel } = req.body;
+  const coords = coerceFindingCoords({ latitude, longitude, locationLabel });
+  if (coords.latitude == null || coords.longitude == null) {
+    return res.status(400).json({ error: 'Latitude and longitude are required' });
+  }
+  const result = updateFindingLocation({
+    gameId: game.id,
+    stateCode,
+    ...coords,
+  });
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Finding not found' });
+  }
+  const payload = broadcastGame(game.id);
+  res.json(payload);
+});
+
 app.post('/api/games/:id/findings', (req, res) => {
   const game = getGame(normalizeGameId(req.params.id));
   const { stateCode, playerId, playerName, latitude, longitude, locationLabel } = req.body;
@@ -199,15 +227,14 @@ app.post('/api/games/:id/findings', (req, res) => {
   if (!stateCode || !playerId || !playerName) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+  const coords = coerceFindingCoords({ latitude, longitude, locationLabel });
   try {
     addFinding({
       gameId: game.id,
       stateCode,
       playerId,
       playerName,
-      latitude,
-      longitude,
-      locationLabel,
+      ...coords,
     });
     const payload = broadcastGame(game.id);
     res.json(payload);

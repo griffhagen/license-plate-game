@@ -650,6 +650,12 @@ body {
 }
 
 .found-time,
+.location-missing {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 8px 0;
+}
+
 .found-location {
   font-size: 0.85rem;
   color: var(--text-muted);

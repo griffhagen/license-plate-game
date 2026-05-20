@@ -37,6 +37,17 @@ export function removeFinding(gameId, stateCode) {
   return request(`/games/${gameId}/findings/${stateCode}`, { method: 'DELETE' });
 }
 
+export function updateFindingLocation(gameId, stateCode, geo) {
+  return request(`/games/${gameId}/findings/${stateCode}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      locationLabel: geo.label,
+    }),
+  });
+}
+
 export function importGame(backup, playerName) {
   return request('/games/import', {
     method: 'POST',
