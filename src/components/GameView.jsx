@@ -5,8 +5,9 @@ import StateGrid from './StateGrid';
 import StateModal from './StateModal';
 import MapPage from './MapPage';
 import GameNav from './GameNav';
-import { getCurrentLocation } from '../utils/geo';
+import { startLocationCapture } from '../utils/geo';
 import { hasGeoCoords } from '../utils/findingLocation';
+import { isIos, isStandaloneApp, safariLocationHint } from '../utils/device';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { downloadGameBackup } from '../utils/gameBackup';
 
@@ -24,6 +25,7 @@ export default function GameView({
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [busy, setBusy] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [safariLinkCopied, setSafariLinkCopied] = useState(false);
   const [restoreMsg, setRestoreMsg] = useState(() => sessionStorage.getItem('plate-restore-msg'));
 
   useEffect(() => {
@@ -59,43 +61,55 @@ export default function GameView({
     setSelectedFinding(null);
   };
 
-  const captureLocation = async () => {
-    const geo = await getCurrentLocation();
+  const finishWithGeo = (geo, save) => {
     if (geo.latitude == null || geo.longitude == null) {
-      throw new Error(geo.errorMessage || 'Could not get your location.');
+      setError(geo.errorMessage || 'Could not get your location.');
+      setBusy(false);
+      return;
     }
-    return geo;
+    save(geo)
+      .then(() => closeModal())
+      .catch((err) => setError(err.message))
+      .finally(() => setBusy(false));
   };
 
-  const handleMarkFound = async (withoutLocation = false) => {
+  const handleMarkFound = (withoutLocation = false) => {
     if (!selected) return;
     setBusy(true);
     setError(null);
-    try {
-      const geo = withoutLocation
-        ? { latitude: null, longitude: null, label: null }
-        : await captureLocation();
-      await markFound(selected.code, geo);
-      closeModal();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
+
+    if (withoutLocation) {
+      markFound(selected.code, { latitude: null, longitude: null, label: null })
+        .then(() => closeModal())
+        .catch((err) => setError(err.message))
+        .finally(() => setBusy(false));
+      return;
     }
+
+    // Start GPS immediately on tap (iOS requires same user gesture)
+    const locationPromise = startLocationCapture();
+    locationPromise.then((geo) => finishWithGeo(geo, (g) => markFound(selected.code, g)));
   };
 
-  const handleAddLocation = async () => {
+  const handleAddLocation = () => {
     if (!selected) return;
     setBusy(true);
     setError(null);
+    const locationPromise = startLocationCapture();
+    locationPromise.then((geo) =>
+      finishWithGeo(geo, (g) => addLocationToFinding(selected.code, g))
+    );
+  };
+
+  const safariHint = safariLocationHint();
+  const copySafariLink = async () => {
+    const url = window.location.href;
     try {
-      const geo = await captureLocation();
-      await addLocationToFinding(selected.code, geo);
-      closeModal();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
+      await navigator.clipboard.writeText(url);
+      setSafariLinkCopied(true);
+    } catch {
+      window.prompt('Copy this link, open Safari, and paste in the address bar:', url);
+      setSafariLinkCopied(true);
     }
   };
 
@@ -154,9 +168,30 @@ export default function GameView({
         <SharePanel gameId={game.id} gameName={game.name} players={game.players} />
       )}
 
+      {safariHint && (
+        <p className="location-safari-banner" role="note">
+          {safariHint}
+          {isIos() && isStandaloneApp() && (
+            <>
+              <button type="button" className="btn-text" onClick={copySafariLink}>
+                {safariLinkCopied ? 'Link copied' : 'Copy link for Safari'}
+              </button>
+              <a className="safari-open-link" href={window.location.href}>
+                Or tap here, then choose Open in Safari
+              </a>
+            </>
+          )}
+        </p>
+      )}
+
       {error && (
         <p className="form-error" role="alert">
           {error}
+          {isIos() && isStandaloneApp() && (
+            <button type="button" className="btn-text" onClick={copySafariLink} style={{ marginLeft: 8 }}>
+              Copy link for Safari
+            </button>
+          )}
           <button type="button" className="btn-text" onClick={() => setError(null)} style={{ marginLeft: 8 }}>
             Dismiss
           </button>

@@ -650,11 +650,37 @@ body {
 }
 
 .found-time,
+.location-safari-banner {
+  background: rgba(244, 196, 48, 0.15);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.location-safari-banner .btn-text,
+.location-safari-banner .safari-open-link {
+  display: block;
+  margin-top: 8px;
+}
+
+.safari-open-link {
+  color: var(--accent);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
 .location-hint {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-bottom: 12px;
   line-height: 1.4;
+}
+
+.location-hint-warn {
+  color: var(--accent);
 }
 
 .location-skip {

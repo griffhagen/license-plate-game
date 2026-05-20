@@ -1,6 +1,7 @@
 import { rarityLabel } from '../data/states';
 import PlateImage from './PlateImage';
 import { hasGeoCoords } from '../utils/findingLocation';
+import { isIos, isStandaloneApp } from '../utils/device';
 
 export default function StateModal({
   state,
@@ -14,6 +15,7 @@ export default function StateModal({
 }) {
   const isFound = Boolean(finding);
   const hasLocation = isFound && hasGeoCoords(finding);
+  const showSafariTip = isIos() && isStandaloneApp();
 
   return (
     <div className="modal-backdrop" onClick={onClose} role="presentation">
@@ -71,9 +73,15 @@ export default function StateModal({
           </div>
         ) : (
           <>
-            <p className="location-hint">
-              When your phone asks, tap <strong>Allow</strong>. Keeping Safari on &ldquo;Ask&rdquo; for websites is fine.
-            </p>
+            {showSafariTip ? (
+              <p className="location-hint location-hint-warn">
+                Using the home-screen icon? GPS often fails on iPhone — use <strong>Open in Safari</strong> on the game screen, or save without location and add it in Safari later.
+              </p>
+            ) : (
+              <p className="location-hint">
+                When your phone asks, tap <strong>Allow</strong>. Keeping Safari on &ldquo;Ask&rdquo; for websites is fine.
+              </p>
+            )}
             <button type="button" className="btn-primary" onClick={onMarkFound} disabled={busy}>
               {busy ? 'Waiting for location…' : 'I spotted this plate!'}
             </button>

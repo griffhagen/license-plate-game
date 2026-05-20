@@ -1,16 +1,71 @@
+import { isIos, isStandaloneApp, safariLocationHint } from './device.js';
+
 const GEO_ERRORS = {
-  1: 'Location was blocked for this site. Tap the button again and choose Allow when your phone asks — you can keep Safari set to Ask for all websites. If you previously tapped Don\'t Allow, reset only this site: in Safari, tap the AA icon in the address bar → Website Settings → Location → Ask.',
-  2: 'Location unavailable right now. Try again outdoors or move somewhere with a clearer signal.',
-  3: 'Location timed out. Tap try again — when your phone asks, tap Allow.',
+  1: 'This site is not allowed to use location. Check Website Settings → Location is Allow, then try again.',
+  2: 'GPS signal not available. Step outside or wait a moment, then try again.',
+  3: 'Location timed out. Try again, or open the game in Safari if you use the home-screen icon.',
 };
 
-function getPosition(options) {
+function getCurrentPositionRace(options, hardTimeoutMs) {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(Object.assign(new Error('Geolocation not supported'), { code: 0 }));
+      reject({ code: 0 });
       return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject({ code: 3 });
+      }
+    }, hardTimeoutMs);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(pos);
+        }
+      },
+      (err) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(err);
+        }
+      },
+      options
+    );
+  });
+}
+
+function watchPositionOnce(options, hardTimeoutMs) {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject({ code: 0 });
+      return;
+    }
+
+    let settled = false;
+    let watchId;
+
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (watchId != null) navigator.geolocation.clearWatch(watchId);
+      fn(value);
+    };
+
+    const timer = setTimeout(() => finish(reject, { code: 3 }), hardTimeoutMs);
+
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => finish(resolve, pos),
+      (err) => finish(reject, err),
+      options
+    );
   });
 }
 
@@ -18,7 +73,7 @@ async function reverseGeocodeLabel(latitude, longitude) {
   let label = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
+    const timer = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
       {
@@ -39,49 +94,85 @@ async function reverseGeocodeLabel(latitude, longitude) {
       }
     }
   } catch {
-    /* keep coordinate label */
+    /* coordinates are enough for the map */
   }
   return label;
 }
 
+function buildError(lastCode) {
+  let msg = GEO_ERRORS[lastCode] || 'Could not get your location.';
+  const safari = safariLocationHint();
+  if (safari) msg = `${msg} ${safari}`;
+  return msg;
+}
+
 /**
- * One GPS request per tap so iOS "Ask" can show a single permission prompt.
- * Only retries on timeout/unavailable — not after permission denied.
+ * Start GPS on the same tap that triggered it (required for iOS).
+ * Call this directly from a button click — do not await other work first.
  */
-export async function getCurrentLocation() {
+export function startLocationCapture() {
   if (!navigator.geolocation) {
-    return {
+    return Promise.resolve({
       latitude: null,
       longitude: null,
       label: null,
       errorMessage: 'This browser does not support location.',
-    };
+    });
   }
 
-  const primary = { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 };
-  const retry = { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 };
+  const standaloneIos = isIos() && isStandaloneApp();
+  const hardTimeout = standaloneIos ? 10000 : 22000;
 
-  let lastCode = null;
-  for (const [index, options] of [primary, retry].entries()) {
-    try {
-      const pos = await getPosition(options);
-      const { latitude, longitude } = pos.coords;
-      const label = await reverseGeocodeLabel(latitude, longitude);
-      return { latitude, longitude, label, errorMessage: null };
-    } catch (err) {
-      lastCode = err?.code ?? null;
-      // Permission denied — do not fire a second request (breaks "Ask" on iPhone)
-      if (lastCode === 1) break;
-      // Only retry once on timeout or unavailable
-      if (index === 0 && (lastCode === 2 || lastCode === 3)) continue;
-      break;
+  const strategies = [
+    () =>
+      getCurrentPositionRace(
+        { enableHighAccuracy: false, maximumAge: 900000, timeout: hardTimeout },
+        hardTimeout
+      ),
+    () =>
+      watchPositionOnce(
+        { enableHighAccuracy: false, maximumAge: 900000, timeout: hardTimeout },
+        hardTimeout
+      ),
+  ];
+
+  if (!standaloneIos) {
+    strategies.push(() =>
+      getCurrentPositionRace(
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
+        15000
+      )
+    );
+  }
+
+  return (async () => {
+    let lastCode = null;
+    for (const strategy of strategies) {
+      try {
+        const pos = await strategy();
+        const { latitude, longitude } = pos.coords;
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          lastCode = 2;
+          continue;
+        }
+        const label = await reverseGeocodeLabel(latitude, longitude);
+        return { latitude, longitude, label, errorMessage: null };
+      } catch (err) {
+        lastCode = err?.code ?? 3;
+        if (lastCode === 1) break;
+      }
     }
-  }
 
-  return {
-    latitude: null,
-    longitude: null,
-    label: null,
-    errorMessage: GEO_ERRORS[lastCode] || 'Could not get your location. Tap try again and choose Allow when asked.',
-  };
+    return {
+      latitude: null,
+      longitude: null,
+      label: null,
+      errorMessage: buildError(lastCode),
+    };
+  })();
+}
+
+/** @deprecated Use startLocationCapture from click handlers */
+export function getCurrentLocation() {
+  return startLocationCapture();
 }
