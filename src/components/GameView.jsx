@@ -6,6 +6,7 @@ import StateModal from './StateModal';
 import MapPage from './MapPage';
 import GameNav from './GameNav';
 import { getCurrentLocation } from '../utils/geo';
+import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 
 export default function GameView({ game, leaveGame, markFound, unmarkFound, error, setError }) {
   const [view, setView] = useState('tracker');
@@ -19,10 +20,10 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
   ).length;
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('join') === game.id) {
+    const joinId = getJoinGameIdFromUrl();
+    if (joinId && joinId === game.id.toLowerCase()) {
       setShowShare(true);
-      window.history.replaceState({}, '', window.location.pathname);
+      clearJoinFromUrl();
     }
   }, [game.id]);
 

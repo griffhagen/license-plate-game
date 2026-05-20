@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
+import { getJoinGameIdFromUrl } from '../utils/joinUrl';
 
 export default function HomeScreen({ startGame, joinExisting, error, setError }) {
-  const joinFromUrl = new URLSearchParams(window.location.search).get('join');
+  const joinFromUrl = getJoinGameIdFromUrl();
   const [mode, setMode] = useState(joinFromUrl ? 'join' : 'start');
   const [gameName, setGameName] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState(joinFromUrl ?? '');
 
   useEffect(() => {
-    if (joinFromUrl) setMode('join');
+    if (joinFromUrl) {
+      setMode('join');
+      setGameCode(joinFromUrl);
+    }
   }, [joinFromUrl]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -20,7 +24,7 @@ export default function HomeScreen({ startGame, joinExisting, error, setError })
       if (mode === 'start') {
         await startGame(gameName.trim(), playerName.trim());
       } else {
-        await joinExisting(gameCode.trim().toLowerCase(), playerName.trim());
+        await joinExisting(gameCode, playerName.trim());
       }
     } catch (err) {
       setError(err.message);
@@ -54,6 +58,12 @@ export default function HomeScreen({ startGame, joinExisting, error, setError })
         </button>
       </div>
 
+      {joinFromUrl && mode === 'join' && (
+        <p className="join-banner">
+          You&apos;ve been invited to join game <strong>{joinFromUrl}</strong>
+        </p>
+      )}
+
       <form className="home-form" onSubmit={handleSubmit}>
         {mode === 'start' ? (
           <label>
@@ -74,10 +84,12 @@ export default function HomeScreen({ startGame, joinExisting, error, setError })
               type="text"
               placeholder="abc12345"
               value={gameCode}
-              onChange={(e) => setGameCode(e.target.value)}
+              onChange={(e) => setGameCode(e.target.value.toLowerCase())}
               required
               autoCapitalize="off"
+              autoCorrect="off"
               spellCheck={false}
+              inputMode="text"
             />
           </label>
         )}

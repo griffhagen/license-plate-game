@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import * as api from '../api';
+import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 
 const SESSION_KEY = 'plate-game-session';
 
@@ -39,15 +40,28 @@ export function useGame() {
   }, []);
 
   useEffect(() => {
+    const joinFromUrl = getJoinGameIdFromUrl();
     const session = loadSession();
+
+    // Invite link for a different game — show join screen, not old session
+    if (joinFromUrl && session?.gameId && joinFromUrl !== session.gameId.toLowerCase()) {
+      clearSession();
+      setLoading(false);
+      return;
+    }
+
     if (!session?.gameId || !session?.playerId) {
       setLoading(false);
       return;
     }
+
     api
       .getGame(session.gameId)
       .then((data) => {
         applyGame(data, session.playerId);
+        if (joinFromUrl && joinFromUrl === data.id.toLowerCase()) {
+          clearJoinFromUrl();
+        }
       })
       .catch(() => clearSession())
       .finally(() => setLoading(false));
@@ -72,10 +86,13 @@ export function useGame() {
 
   const joinExisting = async (gameId, playerName) => {
     setError(null);
-    const data = await api.joinGame(gameId, playerName);
+    const id = gameId.trim().toLowerCase();
+    if (!id) throw new Error('Game code is required');
+    const data = await api.joinGame(id, playerName);
     const session = { gameId: data.id, playerId: data.playerId, playerName };
     saveSession(session);
     applyGame(data, data.playerId);
+    clearJoinFromUrl();
     return data;
   };
 

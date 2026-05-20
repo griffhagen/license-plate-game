@@ -16,11 +16,11 @@ export function createGame(name, playerName) {
 }
 
 export function getGame(gameId) {
-  return request(`/games/${gameId}`);
+  return request(`/games/${encodeURIComponent(gameId.trim().toLowerCase())}`);
 }
 
 export function joinGame(gameId, playerName) {
-  return request(`/games/${gameId}/join`, {
+  return request(`/games/${encodeURIComponent(gameId.trim().toLowerCase())}/join`, {
     method: 'POST',
     body: JSON.stringify({ playerName }),
   });

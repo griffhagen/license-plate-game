@@ -50,7 +50,10 @@ export function createGame(id, name) {
 }
 
 export function getGame(id) {
-  return db.prepare('SELECT * FROM games WHERE id = ?').get(id);
+  const normalized = String(id || '').trim().toLowerCase();
+  return db
+    .prepare('SELECT * FROM games WHERE LOWER(id) = ?')
+    .get(normalized);
 }
 
 export function addPlayer(id, gameId, name) {
