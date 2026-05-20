@@ -89,6 +89,13 @@ export function restoreGame({ id, name, players, findings }) {
   const insertFinding = db.prepare(`
     INSERT INTO findings (game_id, state_code, player_id, player_name, latitude, longitude, location_label, found_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(game_id, state_code) DO UPDATE SET
+      player_id = excluded.player_id,
+      player_name = excluded.player_name,
+      latitude = excluded.latitude,
+      longitude = excluded.longitude,
+      location_label = excluded.location_label,
+      found_at = excluded.found_at
   `);
 
   const run = db.transaction(() => {

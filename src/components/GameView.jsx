@@ -15,6 +15,13 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [busy, setBusy] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState(() => sessionStorage.getItem('plate-restore-msg'));
+
+  useEffect(() => {
+    if (restoreMsg) {
+      sessionStorage.removeItem('plate-restore-msg');
+    }
+  }, [restoreMsg]);
 
   const mapCount = game.findings.filter(
     (f) => f.latitude != null && f.longitude != null
@@ -100,6 +107,12 @@ export default function GameView({ game, leaveGame, markFound, unmarkFound, erro
           </div>
         </div>
       </header>
+
+      {restoreMsg && (
+        <p className="restore-success" role="status">
+          {restoreMsg}
+        </p>
+      )}
 
       <p className="backup-hint">
         Export saves your progress to this phone. Restore it from the home screen if the server was reset.

@@ -104,11 +104,23 @@ export function useGame() {
 
   const importBackup = async (backup, playerName) => {
     setError(null);
+    clearSession();
     const data = await api.importGame(backup, playerName);
-    const session = { gameId: data.id, playerId: data.playerId, playerName };
+    const session = { gameId: data.id, playerId: data.playerId, playerName: playerName.trim() };
     saveSession(session);
     applyGame(data, data.playerId);
     clearJoinFromUrl();
+    if (data.newGameCode) {
+      sessionStorage.setItem(
+        'plate-restore-msg',
+        `Trip restored with ${data.findings.length} plates. New game code: ${data.id} — share this code with your group.`
+      );
+    } else {
+      sessionStorage.setItem(
+        'plate-restore-msg',
+        `Trip restored with ${data.findings.length} plates found.`
+      );
+    }
     return data;
   };
 

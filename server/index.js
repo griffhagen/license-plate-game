@@ -62,48 +62,98 @@ function broadcastGame(gameId) {
   return payload;
 }
 
+function prepareRestoreData(game, playerName) {
+  const importer = playerName.trim();
+  const sourcePlayers =
+    Array.isArray(game.players) && game.players.length > 0 ? game.players : [];
+
+  const idMap = new Map();
+  const players = sourcePlayers.map((p) => {
+    const newId = nanoid(12);
+    if (p.id) idMap.set(p.id, newId);
+    return {
+      id: newId,
+      name: String(p.name || 'Player').trim(),
+      joinedAt: p.joinedAt || new Date().toISOString(),
+    };
+  });
+
+  let playerId = players.find((p) => p.name.toLowerCase() === importer.toLowerCase())?.id;
+  if (!playerId) {
+    playerId = nanoid(12);
+    players.push({ id: playerId, name: importer, joinedAt: new Date().toISOString() });
+  }
+
+  const seenStates = new Set();
+  const findings = (game.findings || [])
+    .map((f) => {
+      const stateCode = String(f.stateCode || '')
+        .trim()
+        .toUpperCase();
+      if (!stateCode || stateCode.length !== 2) return null;
+      const mappedPlayerId = idMap.get(f.playerId) || playerId;
+      const owner =
+        players.find((p) => p.id === mappedPlayerId) ||
+        players.find((p) => p.name === f.playerName);
+      return {
+        stateCode,
+        playerId: mappedPlayerId,
+        playerName: String(f.playerName || owner?.name || importer).trim(),
+        latitude: f.latitude ?? null,
+        longitude: f.longitude ?? null,
+        locationLabel: f.locationLabel ?? null,
+        foundAt: f.foundAt || new Date().toISOString(),
+      };
+    })
+    .filter((f) => {
+      if (!f || seenStates.has(f.stateCode)) return false;
+      seenStates.add(f.stateCode);
+      return true;
+    });
+
+  return { players, findings, playerId };
+}
+
 app.post('/api/games/import', (req, res) => {
   const { backup, playerName } = req.body;
   const game = backup?.game;
-  if (!game?.name?.trim() || !Array.isArray(game.findings)) {
+  if (!game?.name?.trim()) {
     return res.status(400).json({ error: 'Invalid backup data' });
   }
   if (!playerName?.trim()) {
     return res.status(400).json({ error: 'Your name is required to restore' });
   }
 
-  let gameId = game.id ? normalizeGameId(game.id) : nanoid(8).toLowerCase();
+  const previousId = game.id ? normalizeGameId(game.id) : null;
+  let gameId = previousId || nanoid(8).toLowerCase();
   if (getGame(gameId)) {
     gameId = nanoid(8).toLowerCase();
   }
 
-  const players = Array.isArray(game.players) && game.players.length > 0
-    ? game.players
-    : [{ id: nanoid(12), name: playerName.trim(), joinedAt: new Date().toISOString() }];
-
-  const importerInList = players.some(
-    (p) => p.name?.trim().toLowerCase() === playerName.trim().toLowerCase()
-  );
-  const playerId = importerInList
-    ? players.find((p) => p.name?.trim().toLowerCase() === playerName.trim().toLowerCase()).id
-    : nanoid(12);
-
-  if (!importerInList) {
-    players.push({ id: playerId, name: playerName.trim(), joinedAt: new Date().toISOString() });
-  }
+  const { players, findings, playerId } = prepareRestoreData(game, playerName);
 
   try {
     restoreGame({
       id: gameId,
       name: game.name.trim(),
       players,
-      findings: game.findings,
+      findings,
     });
     const payload = gamePayload(gameId);
-    res.json({ ...payload, playerId, restored: true, previousId: game.id || null });
+    res.json({
+      ...payload,
+      playerId,
+      restored: true,
+      previousId,
+      newGameCode: gameId !== previousId,
+    });
   } catch (err) {
     console.error('Import failed:', err);
-    return res.status(500).json({ error: 'Could not restore backup' });
+    const msg =
+      err.code === 'SQLITE_CONSTRAINT_PRIMARYKEY'
+        ? 'Restore failed: conflicting data on server'
+        : 'Could not restore backup';
+    return res.status(500).json({ error: msg });
   }
 });
 

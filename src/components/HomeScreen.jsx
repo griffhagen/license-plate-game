@@ -131,7 +131,7 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
         <input
           ref={fileInputRef}
           type="file"
-          accept="application/json,.json"
+          accept=".json,application/json,text/json,text/plain"
           className="restore-file-input"
           onChange={async (e) => {
             const file = e.target.files?.[0];

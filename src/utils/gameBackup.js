@@ -15,13 +15,27 @@ export function buildGameBackup(game) {
 }
 
 export function parseGameBackup(raw) {
-  const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-  if (!data || data.version !== BACKUP_VERSION || !data.game) {
+  let data;
+  try {
+    data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    throw new Error('Could not read file — make sure it is a .json backup from Export');
+  }
+  if (!data?.game) {
     throw new Error('Invalid backup file format');
   }
+  if (Number(data.version) !== BACKUP_VERSION) {
+    throw new Error('Unsupported backup version');
+  }
   const { game } = data;
-  if (!game.name?.trim() || !Array.isArray(game.findings)) {
-    throw new Error('Backup is missing trip data');
+  if (!game.name?.trim()) {
+    throw new Error('Backup is missing trip name');
+  }
+  if (!Array.isArray(game.findings)) {
+    game.findings = [];
+  }
+  if (!Array.isArray(game.players)) {
+    game.players = [];
   }
   return data;
 }

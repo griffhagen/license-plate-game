@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['icons/*.png'],
       manifest: {
         name: 'License Plate Game',
-        short_name: 'Plates',
+        short_name: 'Plate Game',
         description: 'Track state license plates on your road trip with friends',
         theme_color: '#1a4d3e',
         background_color: '#0f2e26',
