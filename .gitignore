@@ -1,0 +1,6 @@
+node_modules/
+dist/
+server/plates.db
+.DS_Store
+*.log
+dev-dist/

@@ -1,0 +1,16 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Dashboard → New → Blueprint → connect this repo
+services:
+  - type: web
+    name: license-plate-game
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Optional: add a Render Disk (paid plans) mounted at /var/data, then set:
+      # - key: DATABASE_PATH
+      #   value: /var/data/plates.db
