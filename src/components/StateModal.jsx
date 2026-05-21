@@ -1,5 +1,6 @@
 import { rarityLabel } from '../data/states';
 import PlateImage from './PlateImage';
+import StateFacts from './StateFacts';
 import { hasGeoCoords } from '../utils/findingLocation';
 import { isIos, isStandaloneApp } from '../utils/device';
 
@@ -41,7 +42,8 @@ export default function StateModal({
         <p className="rarity-badge">
           {rarityLabel(state.rarity)} · {state.rarity}/10 rarity
         </p>
-        <p className="state-fact">{state.fact}</p>
+
+        <StateFacts state={state} />
 
         {isFound ? (
           <div className="finding-details">

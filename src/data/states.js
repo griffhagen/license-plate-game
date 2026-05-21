@@ -1,5 +1,11 @@
+import { STATE_DETAILS } from './stateDetails.js';
+
+function withDetails(state) {
+  return { ...state, ...STATE_DETAILS[state.code] };
+}
+
 /** All 50 US states with fun facts and road-trip rarity (1–10, higher = harder to spot). */
-export const STATES = [
+const STATES_BASE = [
   { code: 'AL', name: 'Alabama', rarity: 5, fact: 'Home to the U.S. Space & Rocket Center in Huntsville.' },
   { code: 'AK', name: 'Alaska', rarity: 9, fact: 'The largest state by area — bigger than Texas, California, and Montana combined.' },
   { code: 'AZ', name: 'Arizona', rarity: 4, fact: 'The Grand Canyon is over a mile deep at its deepest point.' },
@@ -51,6 +57,8 @@ export const STATES = [
   { code: 'WI', name: 'Wisconsin', rarity: 4, fact: 'America\'s Dairyland — famous for cheese and the Green Bay Packers.' },
   { code: 'WY', name: 'Wyoming', rarity: 9, fact: 'The least populous state — Yellowstone was the world\'s first national park.' },
 ];
+
+export const STATES = STATES_BASE.map(withDetails);
 
 export const STATE_BY_CODE = Object.fromEntries(STATES.map((s) => [s.code, s]));
 export const TOTAL_STATES = STATES.length;

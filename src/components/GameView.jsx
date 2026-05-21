@@ -171,15 +171,6 @@ export default function GameView({
           </button>
         </div>
         <TripProgress foundCount={foundCount} />
-        <div className="game-top-actions">
-          <button
-            type="button"
-            className={`btn-invite ${showShare ? 'active' : ''}`}
-            onClick={() => setShowShare((s) => !s)}
-          >
-            {showShare ? 'Hide invite' : 'Invite players'}
-          </button>
-        </div>
       </header>
 
       {restoreMsg && (
@@ -189,7 +180,12 @@ export default function GameView({
       )}
 
       {showShare && (
-        <SharePanel gameId={game.id} gameName={game.name} players={game.players} />
+        <SharePanel
+          gameId={game.id}
+          gameName={game.name}
+          players={game.players}
+          onClose={() => setShowShare(false)}
+        />
       )}
 
       {showSafariBanner && (
@@ -243,6 +239,10 @@ export default function GameView({
       <TripMenu
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
+        onInvite={() => {
+          setShowShare(true);
+          setMenuOpen(false);
+        }}
         onExport={() => {
           downloadGameBackup(game);
           setMenuOpen(false);

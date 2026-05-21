@@ -1,4 +1,10 @@
-export default function TripMenu({ open, onClose, onExport, onLeave }) {
+export default function TripMenu({
+  open,
+  onClose,
+  onInvite,
+  onExport,
+  onLeave,
+}) {
   if (!open) return null;
 
   return (
@@ -10,20 +16,42 @@ export default function TripMenu({ open, onClose, onExport, onLeave }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="trip-menu-header">
-          <h2>Trip options</h2>
+          <h2>Trip menu</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
-        <p className="trip-menu-hint">
-          Export a backup to this phone. Restore it from the home screen if the server was reset.
-        </p>
-        <button type="button" className="btn-secondary menu-action" onClick={onExport}>
-          Export backup
-        </button>
-        <button type="button" className="btn-ghost danger menu-action" onClick={onLeave}>
-          Leave trip
-        </button>
+
+        <nav className="trip-menu-list">
+          <button type="button" className="trip-menu-item" onClick={onInvite}>
+            <span className="trip-menu-item-icon" aria-hidden>
+              👥
+            </span>
+            <span className="trip-menu-item-text">
+              <strong>Invite players</strong>
+              <small>Share code or link with your crew</small>
+            </span>
+          </button>
+          <button type="button" className="trip-menu-item" onClick={onExport}>
+            <span className="trip-menu-item-icon" aria-hidden>
+              ↓
+            </span>
+            <span className="trip-menu-item-text">
+              <strong>Export backup</strong>
+              <small>Save progress to this phone</small>
+            </span>
+          </button>
+          <button type="button" className="trip-menu-item trip-menu-item-danger" onClick={onLeave}>
+            <span className="trip-menu-item-icon" aria-hidden>
+              ←
+            </span>
+            <span className="trip-menu-item-text">
+              <strong>Leave trip</strong>
+              <small>Return to home screen</small>
+            </span>
+          </button>
+        </nav>
+
       </div>
     </div>
   );

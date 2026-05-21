@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function SharePanel({ gameId, gameName, players }) {
+export default function SharePanel({ gameId, gameName, players, onClose }) {
   const [copied, setCopied] = useState('');
 
   const url = `${window.location.origin}/?join=${gameId}`;
@@ -33,7 +33,14 @@ export default function SharePanel({ gameId, gameName, players }) {
 
   return (
     <div className="share-panel">
-      <p className="share-panel-title">Invite your crew</p>
+      <div className="share-panel-header">
+        <p className="share-panel-title">Invite your crew</p>
+        {onClose && (
+          <button type="button" className="btn-text share-panel-close" onClick={onClose}>
+            Close
+          </button>
+        )}
+      </div>
       <div className="share-code-block">
         <span className="share-label">Game code</span>
         <div className="share-code-row">
