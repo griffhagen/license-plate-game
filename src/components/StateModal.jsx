@@ -20,14 +20,20 @@ export default function StateModal({
   return (
     <div className="modal-backdrop" onClick={onClose} role="presentation">
       <div
-        className="modal"
+        className="modal sheet"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-labelledby="state-modal-title"
       >
+        <div className="sheet-handle" aria-hidden />
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>
+
+        <span className={`status-pill ${isFound ? 'found' : 'open'}`}>
+          {isFound ? '✓ Found' : 'Not spotted yet'}
+        </span>
+
         <div className={`modal-plate-frame ${isFound ? 'found' : ''}`}>
           <PlateImage code={state.code} size="lg" className="modal-plate-img" />
         </div>
@@ -57,43 +63,36 @@ export default function StateModal({
               </a>
             )}
             {!hasLocation && (
-              <>
-                <p className="location-missing">No GPS saved for this plate yet.</p>
-                <p className="location-hint">
-                  Tap Allow if your phone asks — Ask in Settings is OK.
-                </p>
+              <div className="location-prompt">
+                <p className="location-missing">No map pin yet</p>
                 <button type="button" className="btn-primary" onClick={onAddLocation} disabled={busy}>
-                  {busy ? 'Waiting for location…' : 'Add location now'}
+                  {busy ? 'Waiting for location…' : 'Add map location'}
                 </button>
-              </>
+              </div>
             )}
             <button type="button" className="btn-ghost danger" onClick={onUnmark} disabled={busy}>
               Remove finding
             </button>
           </div>
         ) : (
-          <>
-            {showSafariTip ? (
+          <div className="modal-actions">
+            {showSafariTip && (
               <p className="location-hint location-hint-warn">
-                Using the home-screen icon? GPS often fails on iPhone — use <strong>Open in Safari</strong> on the game screen, or save without location and add it in Safari later.
-              </p>
-            ) : (
-              <p className="location-hint">
-                When your phone asks, tap <strong>Allow</strong>. Keeping Safari on &ldquo;Ask&rdquo; for websites is fine.
+                Home-screen app? Use Safari for GPS, or save without a map pin.
               </p>
             )}
-            <button type="button" className="btn-primary" onClick={onMarkFound} disabled={busy}>
+            <button type="button" className="btn-primary btn-lg" onClick={onMarkFound} disabled={busy}>
               {busy ? 'Waiting for location…' : 'I spotted this plate!'}
             </button>
             <button
               type="button"
-              className="btn-text location-skip"
+              className="btn-secondary"
               onClick={onMarkWithoutLocation}
               disabled={busy}
             >
-              Save without map location
+              Save without location
             </button>
-          </>
+          </div>
         )}
       </div>
     </div>

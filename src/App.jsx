@@ -9,6 +9,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="app loading-screen">
+        <span className="hero-plate loading-plate">USA</span>
         <div className="loader" />
         <p>Loading your road trip…</p>
       </div>

@@ -15,6 +15,7 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
       setGameCode(joinFromUrl);
     }
   }, [joinFromUrl]);
+
   const [submitting, setSubmitting] = useState(false);
   const [restoreName, setRestoreName] = useState('');
   const fileInputRef = useRef(null);
@@ -44,30 +45,40 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
         <p>Spot all 50 states on your road trip — together.</p>
       </header>
 
-      <div className="mode-tabs">
+      <ol className="home-steps">
+        <li>Start or join a trip</li>
+        <li>Tap plates as you spot them</li>
+        <li>Share the code with your crew</li>
+      </ol>
+
+      <div className="mode-tabs" role="tablist" aria-label="Start or join">
         <button
           type="button"
+          role="tab"
+          aria-selected={mode === 'start'}
           className={mode === 'start' ? 'active' : ''}
           onClick={() => setMode('start')}
         >
-          Start Game
+          New trip
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={mode === 'join'}
           className={mode === 'join' ? 'active' : ''}
           onClick={() => setMode('join')}
         >
-          Join Game
+          Join trip
         </button>
       </div>
 
       {joinFromUrl && mode === 'join' && (
         <p className="join-banner">
-          You&apos;ve been invited to join game <strong>{joinFromUrl}</strong>
+          Invited to trip <strong>{joinFromUrl}</strong>
         </p>
       )}
 
-      <form className="home-form" onSubmit={handleSubmit}>
+      <form className="home-form card" onSubmit={handleSubmit}>
         {mode === 'start' ? (
           <label>
             Trip name
@@ -78,6 +89,7 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
               onChange={(e) => setGameName(e.target.value)}
               required
               maxLength={60}
+              autoComplete="off"
             />
           </label>
         ) : (
@@ -105,18 +117,19 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
             onChange={(e) => setPlayerName(e.target.value)}
             required
             maxLength={30}
+            autoComplete="name"
           />
         </label>
         {error && <p className="form-error">{error}</p>}
-        <button type="submit" className="btn-primary" disabled={submitting}>
-          {submitting ? 'Loading…' : mode === 'start' ? 'Create & Play' : 'Join Trip'}
+        <button type="submit" className="btn-primary btn-lg" disabled={submitting}>
+          {submitting ? 'Loading…' : mode === 'start' ? 'Start trip' : 'Join trip'}
         </button>
       </form>
 
-      <section className="restore-section">
-        <h2>Restore saved trip</h2>
+      <details className="restore-section card">
+        <summary>Restore from backup file</summary>
         <p className="restore-hint">
-          Upload a backup file you exported earlier to continue your progress (new game code if the old trip was lost on the server).
+          Upload a JSON file you exported earlier if the server lost your trip.
         </p>
         <label>
           Your name
@@ -140,7 +153,7 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
             setSubmitting(true);
             try {
               if (!restoreName.trim()) {
-                throw new Error('Enter your name above before restoring');
+                throw new Error('Enter your name before restoring');
               }
               const backup = await readBackupFile(file);
               await importBackup(backup, restoreName.trim());
@@ -158,27 +171,27 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
           disabled={submitting}
           onClick={() => fileInputRef.current?.click()}
         >
-          {submitting ? 'Restoring…' : 'Choose backup file…'}
+          {submitting ? 'Restoring…' : 'Choose backup file'}
         </button>
-      </section>
+      </details>
 
       <section className="home-features">
         <div className="feature">
-          <span>📍</span>
-          <p>Logs where you spotted each plate</p>
+          <span aria-hidden>📍</span>
+          <p>Map where each plate was spotted</p>
         </div>
         <div className="feature">
-          <span>👥</span>
-          <p>Share a code — everyone sees live progress</p>
+          <span aria-hidden>👥</span>
+          <p>Live sync for everyone on the trip</p>
         </div>
         <div className="feature">
-          <span>⭐</span>
-          <p>Rarity scores & state fun facts</p>
+          <span aria-hidden>⭐</span>
+          <p>Rarity scores and state fun facts</p>
         </div>
       </section>
 
       <p className="pwa-hint">
-        On iPhone: tap Share → <strong>Add to Home Screen</strong> for the full app experience.
+        iPhone: Share → <strong>Add to Home Screen</strong>
       </p>
     </div>
   );

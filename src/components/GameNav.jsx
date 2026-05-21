@@ -1,4 +1,4 @@
-export default function GameNav({ view, onChange, mapCount }) {
+export default function GameNav({ view, onChange, mapCount, foundCount, totalStates }) {
   return (
     <nav className="game-nav" aria-label="Game sections">
       <button
@@ -10,7 +10,8 @@ export default function GameNav({ view, onChange, mapCount }) {
         <span className="nav-icon" aria-hidden>
           ⊞
         </span>
-        Tracker
+        <span className="nav-label">Plates</span>
+        <span className="nav-sub">{foundCount}/{totalStates}</span>
       </button>
       <button
         type="button"
@@ -19,10 +20,14 @@ export default function GameNav({ view, onChange, mapCount }) {
         aria-current={view === 'map' ? 'page' : undefined}
       >
         <span className="nav-icon" aria-hidden>
-          🗺
+          ◉
         </span>
-        Map
-        {mapCount > 0 && <span className="nav-badge">{mapCount}</span>}
+        <span className="nav-label">Map</span>
+        {mapCount > 0 ? (
+          <span className="nav-badge">{mapCount}</span>
+        ) : (
+          <span className="nav-sub">GPS</span>
+        )}
       </button>
     </nav>
   );

@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react';
 import StatsBar from './StatsBar';
 import SharePanel from './SharePanel';
-import StateGrid from './StateGrid';
+import StateGrid, { getFilterCounts } from './StateGrid';
 import StateModal from './StateModal';
 import MapPage from './MapPage';
 import GameNav from './GameNav';
+import TripProgress from './TripProgress';
+import GridToolbar from './GridToolbar';
+import TripMenu from './TripMenu';
 import { startLocationCapture } from '../utils/geo';
 import { hasGeoCoords } from '../utils/findingLocation';
 import { isIos, isStandaloneApp, safariLocationHint } from '../utils/device';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { downloadGameBackup } from '../utils/gameBackup';
+import { TOTAL_STATES } from '../data/states';
+
+const SAFARI_DISMISS_KEY = 'plate-safari-dismissed';
 
 export default function GameView({
   game,
@@ -21,11 +27,16 @@ export default function GameView({
   setError,
 }) {
   const [view, setView] = useState('tracker');
+  const [filter, setFilter] = useState('missing');
   const [selected, setSelected] = useState(null);
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [busy, setBusy] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [safariLinkCopied, setSafariLinkCopied] = useState(false);
+  const [safariDismissed, setSafariDismissed] = useState(
+    () => sessionStorage.getItem(SAFARI_DISMISS_KEY) === '1'
+  );
   const [restoreMsg, setRestoreMsg] = useState(() => sessionStorage.getItem('plate-restore-msg'));
 
   useEffect(() => {
@@ -34,7 +45,11 @@ export default function GameView({
     }
   }, [restoreMsg]);
 
+  const foundCount = game.findings.length;
   const mapCount = game.findings.filter(hasGeoCoords).length;
+  const filterCounts = getFilterCounts(game.findings);
+  const safariHint = safariLocationHint();
+  const showSafariBanner = safariHint && isIos() && isStandaloneApp() && !safariDismissed;
 
   useEffect(() => {
     const joinId = getJoinGameIdFromUrl();
@@ -86,7 +101,6 @@ export default function GameView({
       return;
     }
 
-    // Start GPS immediately on tap (iOS requires same user gesture)
     const locationPromise = startLocationCapture();
     locationPromise.then((geo) => finishWithGeo(geo, (g) => markFound(selected.code, g)));
   };
@@ -101,7 +115,6 @@ export default function GameView({
     );
   };
 
-  const safariHint = safariLocationHint();
   const copySafariLink = async () => {
     const url = window.location.href;
     try {
@@ -111,6 +124,11 @@ export default function GameView({
       window.prompt('Copy this link, open Safari, and paste in the address bar:', url);
       setSafariLinkCopied(true);
     }
+  };
+
+  const dismissSafariBanner = () => {
+    sessionStorage.setItem(SAFARI_DISMISS_KEY, '1');
+    setSafariDismissed(true);
   };
 
   const handleUnmark = async () => {
@@ -127,87 +145,110 @@ export default function GameView({
     }
   };
 
+  const handleLeave = () => {
+    setMenuOpen(false);
+    leaveGame();
+  };
+
   const findingForSelected =
-    selectedFinding ??
-    game.findings.find((f) => f.stateCode === selected?.code);
+    selectedFinding ?? game.findings.find((f) => f.stateCode === selected?.code);
 
   return (
     <div className="app game game-with-nav">
-      <header className="game-header">
-        <div className="game-header-main">
-          <h1>{game.name}</h1>
-          <div className="game-header-actions">
-            <button type="button" className="btn-text" onClick={() => setShowShare((s) => !s)}>
-              {showShare ? 'Hide invite' : 'Invite'}
-            </button>
-            <button
-              type="button"
-              className="btn-text"
-              onClick={() => downloadGameBackup(game)}
-            >
-              Export
-            </button>
-            <button type="button" className="btn-ghost" onClick={leaveGame}>
-              Leave
-            </button>
+      <header className="game-top">
+        <div className="game-top-row">
+          <div className="game-title-block">
+            <span className="game-eyebrow">Road trip</span>
+            <h1>{game.name}</h1>
           </div>
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Trip menu"
+          >
+            ⋯
+          </button>
+        </div>
+        <TripProgress foundCount={foundCount} />
+        <div className="game-top-actions">
+          <button
+            type="button"
+            className={`btn-invite ${showShare ? 'active' : ''}`}
+            onClick={() => setShowShare((s) => !s)}
+          >
+            {showShare ? 'Hide invite' : 'Invite players'}
+          </button>
         </div>
       </header>
 
       {restoreMsg && (
-        <p className="restore-success" role="status">
+        <p className="toast toast-success" role="status">
           {restoreMsg}
         </p>
       )}
-
-      <p className="backup-hint">
-        Export saves your progress to this phone. Restore it from the home screen if the server was reset.
-      </p>
 
       {showShare && (
         <SharePanel gameId={game.id} gameName={game.name} players={game.players} />
       )}
 
-      {safariHint && (
-        <p className="location-safari-banner" role="note">
-          {safariHint}
-          {isIos() && isStandaloneApp() && (
-            <>
-              <button type="button" className="btn-text" onClick={copySafariLink}>
-                {safariLinkCopied ? 'Link copied' : 'Copy link for Safari'}
-              </button>
-              <a className="safari-open-link" href={window.location.href}>
-                Or tap here, then choose Open in Safari
-              </a>
-            </>
-          )}
-        </p>
+      {showSafariBanner && (
+        <aside className="toast toast-warn" role="note">
+          <p>{safariHint}</p>
+          <div className="toast-actions">
+            <button type="button" className="btn-text" onClick={copySafariLink}>
+              {safariLinkCopied ? 'Link copied' : 'Copy for Safari'}
+            </button>
+            <button type="button" className="btn-text" onClick={dismissSafariBanner}>
+              Dismiss
+            </button>
+          </div>
+        </aside>
       )}
 
       {error && (
-        <p className="form-error" role="alert">
-          {error}
-          {isIos() && isStandaloneApp() && (
-            <button type="button" className="btn-text" onClick={copySafariLink} style={{ marginLeft: 8 }}>
-              Copy link for Safari
+        <div className="toast toast-error" role="alert">
+          <p>{error}</p>
+          <div className="toast-actions">
+            {isIos() && isStandaloneApp() && (
+              <button type="button" className="btn-text" onClick={copySafariLink}>
+                Copy for Safari
+              </button>
+            )}
+            <button type="button" className="btn-text" onClick={() => setError(null)}>
+              Dismiss
             </button>
-          )}
-          <button type="button" className="btn-text" onClick={() => setError(null)} style={{ marginLeft: 8 }}>
-            Dismiss
-          </button>
-        </p>
+          </div>
+        </div>
       )}
 
       {view === 'tracker' ? (
         <>
           <StatsBar findings={game.findings} />
-          <StateGrid findings={game.findings} onSelect={openState} />
+          <GridToolbar filter={filter} onFilterChange={setFilter} counts={filterCounts} />
+          <StateGrid findings={game.findings} onSelect={openState} filter={filter} />
         </>
       ) : (
-        <MapPage findings={game.findings} />
+        <MapPage findings={game.findings} onGoToPlates={() => setView('tracker')} />
       )}
 
-      <GameNav view={view} onChange={setView} mapCount={mapCount} />
+      <GameNav
+        view={view}
+        onChange={setView}
+        mapCount={mapCount}
+        foundCount={foundCount}
+        totalStates={TOTAL_STATES}
+      />
+
+      <TripMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onExport={() => {
+          downloadGameBackup(game);
+          setMenuOpen(false);
+        }}
+        onLeave={handleLeave}
+      />
 
       {selected && view === 'tracker' && (
         <StateModal

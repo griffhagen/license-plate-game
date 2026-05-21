@@ -12,8 +12,7 @@ export default function StatsBar({ findings }) {
   const rarityPct = maxRarity > 0 ? Math.round((rarityEarned / maxRarity) * 100) : 0;
 
   const hardestLeft = STATES.filter((s) => !foundCodes.has(s.code))
-    .sort((a, b) => b.rarity - a.rarity)
-    .slice(0, 1)[0];
+    .sort((a, b) => b.rarity - a.rarity)[0];
 
   return (
     <div className="stats-bar">
@@ -23,18 +22,24 @@ export default function StatsBar({ findings }) {
       </div>
       <div className="stat">
         <span className="stat-value">{remaining}</span>
-        <span className="stat-label">Left</span>
+        <span className="stat-label">To go</span>
       </div>
       <div className="stat">
         <span className="stat-value">{rarityPct}%</span>
-        <span className="stat-label">Rarity score</span>
+        <span className="stat-label">Rarity pts</span>
       </div>
       {hardestLeft && remaining > 0 && (
-        <div className="stat stat-wide">
-          <span className="stat-label">Toughest left</span>
+        <div className="stat stat-wide stat-hunt">
+          <span className="stat-label">Next hunt</span>
           <span className="stat-value stat-small">
-            {hardestLeft.name} ({hardestLeft.rarity}/10)
+            {hardestLeft.name}
+            <span className="stat-rarity"> · {hardestLeft.rarity}/10</span>
           </span>
+        </div>
+      )}
+      {remaining === 0 && (
+        <div className="stat stat-wide stat-complete">
+          <span className="stat-value stat-small">All 50 states found!</span>
         </div>
       )}
     </div>

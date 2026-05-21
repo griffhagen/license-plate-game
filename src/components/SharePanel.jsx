@@ -1,16 +1,17 @@
 import { useState } from 'react';
 
 export default function SharePanel({ gameId, gameName, players }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState('');
+
   const url = `${window.location.origin}/?join=${gameId}`;
 
-  const copyLink = async () => {
+  const copyText = async (text, key) => {
     try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      setTimeout(() => setCopied(''), 2000);
     } catch {
-      /* fallback below */
+      window.prompt('Copy:', text);
     }
   };
 
@@ -24,28 +25,38 @@ export default function SharePanel({ gameId, gameName, players }) {
         });
         return;
       } catch {
-        /* user cancelled */
+        /* cancelled */
       }
     }
-    copyLink();
+    copyText(url, 'link');
   };
 
   return (
     <div className="share-panel">
-      <div className="share-code">
+      <p className="share-panel-title">Invite your crew</p>
+      <div className="share-code-block">
         <span className="share-label">Game code</span>
-        <code>{gameId}</code>
+        <div className="share-code-row">
+          <code className="share-code-value">{gameId}</code>
+          <button
+            type="button"
+            className="btn-copy"
+            onClick={() => copyText(gameId, 'code')}
+          >
+            {copied === 'code' ? 'Copied' : 'Copy'}
+          </button>
+        </div>
       </div>
       <p className="share-players">
-        {players.length} player{players.length !== 1 ? 's' : ''}:{' '}
+        <span className="share-players-count">{players.length}</span> playing:{' '}
         {players.map((p) => p.name).join(', ')}
       </p>
       <div className="share-actions">
-        <button type="button" className="btn-secondary" onClick={shareNative}>
-          Share invite
+        <button type="button" className="btn-primary" onClick={shareNative}>
+          Share invite link
         </button>
-        <button type="button" className="btn-ghost" onClick={copyLink}>
-          {copied ? 'Copied!' : 'Copy link'}
+        <button type="button" className="btn-secondary" onClick={() => copyText(url, 'link')}>
+          {copied === 'link' ? 'Link copied' : 'Copy link only'}
         </button>
       </div>
     </div>

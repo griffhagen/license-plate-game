@@ -53,7 +53,7 @@ function popupHtml(finding) {
   `;
 }
 
-export default function MapPage({ findings }) {
+export default function MapPage({ findings, onGoToPlates }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
 
@@ -101,15 +101,23 @@ export default function MapPage({ findings }) {
   if (geoFindings.length === 0) {
     return (
       <div className="map-empty">
-        <p className="map-empty-title">No spots on the map yet</p>
+        <span className="map-empty-icon" aria-hidden>
+          ◉
+        </span>
+        <p className="map-empty-title">No map pins yet</p>
         <p className="map-empty-hint">
-          When you mark a plate found, we save your location. Spots with GPS will appear here.
+          Mark a plate on the Plates tab and allow location when asked. Pins show where you spotted each state.
         </p>
-        <div className="map-empty-plates">
-          {findings.length > 0 && (
-            <p>{findings.length} plate{findings.length !== 1 ? 's' : ''} found without location data.</p>
-          )}
-        </div>
+        {findings.length > 0 && (
+          <p className="map-empty-meta">
+            {findings.length} plate{findings.length !== 1 ? 's' : ''} logged without GPS.
+          </p>
+        )}
+        {onGoToPlates && (
+          <button type="button" className="btn-primary map-empty-cta" onClick={onGoToPlates}>
+            Go to Plates
+          </button>
+        )}
       </div>
     );
   }
