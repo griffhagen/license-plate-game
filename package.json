@@ -15,6 +15,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "icons:sync": "cp -f icons/*.png icons/favicon.ico public/icons/",
     "plates": "node scripts/download-plates.mjs",
+    "bonus-plates": "node scripts/download-bonus-plates.mjs",
+    "bonus-plates:svgs": "node scripts/generate-bonus-plate-svgs.mjs",
     "start": "NODE_ENV=production node server/index.js"
   },
   "dependencies": {

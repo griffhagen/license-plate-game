@@ -1171,80 +1171,45 @@ body {
   margin-bottom: 8px;
 }
 
-.state-cell.bonus {
-  border-color: rgba(244, 196, 48, 0.45);
-}
-
-.state-cell.bonus.found {
-  background: linear-gradient(145deg, #4a4528, var(--bg-elevated));
-  border-color: var(--accent);
-}
-
-.state-grid--bonus {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (min-width: 420px) {
-  .state-grid--bonus {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.bonus-section {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--bg-elevated);
-}
-
-.bonus-section-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
-}
-
-.bonus-section-header h2 {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.bonus-section-count {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.bonus-section-hint {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  line-height: 1.45;
-  margin-bottom: 14px;
-}
-
 .bonus-pill {
   margin-left: 6px;
   background: rgba(244, 196, 48, 0.2);
   color: var(--accent);
 }
 
-.modal-plate-frame.bonus.found {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(244, 196, 48, 0.35);
+.game-nav-three button {
+  padding: 8px 4px 6px;
 }
 
-.plate-fallback--emoji {
-  font-size: 1.4rem;
-  line-height: 1;
+.game-nav-three .nav-icon {
+  font-size: 1.2rem;
 }
 
-.plate-fallback--sm.plate-fallback--emoji {
-  font-size: 1rem;
+.game-nav-three .nav-label {
+  font-size: 0.68rem;
 }
 
-.plate-fallback--lg.plate-fallback--emoji {
-  font-size: 2rem;
-  min-height: 72px;
+.bonus-page {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bonus-page-intro {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.bonus-progress-fill {
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+}
+
+@media (max-width: 380px) {
+  .game-nav-three .nav-sub {
+    font-size: 0.58rem;
+  }
 }
 
 /* Game bottom nav */

@@ -5,10 +5,10 @@ const FILTERS = [
   { id: 'rare', label: 'Rare ★' },
 ];
 
-export default function GridToolbar({ filter, onFilterChange, counts }) {
+export default function GridToolbar({ filter, onFilterChange, counts, hint }) {
   return (
     <div className="grid-toolbar">
-      <p className="grid-toolbar-hint">Tap a plate to log a sighting</p>
+      <p className="grid-toolbar-hint">{hint ?? 'Tap a plate to log a sighting'}</p>
       <div className="filter-chips" role="tablist" aria-label="Filter plates">
         {FILTERS.map((f) => (
           <button

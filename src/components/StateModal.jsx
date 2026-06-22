@@ -36,8 +36,8 @@ export default function StateModal({
         </span>
         {state.bonus && <span className="status-pill bonus-pill">Bonus</span>}
 
-        <div className={`modal-plate-frame ${isFound ? 'found' : ''} ${state.bonus ? 'bonus' : ''}`}>
-          <PlateImage code={state.code} size="lg" className="modal-plate-img" emoji={state.emoji} />
+        <div className={`modal-plate-frame ${isFound ? 'found' : ''}`}>
+          <PlateImage code={state.code} size="lg" className="modal-plate-img" />
         </div>
         <h2 id="state-modal-title">{state.name}</h2>
         <p className="rarity-badge">

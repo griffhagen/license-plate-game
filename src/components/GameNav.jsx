@@ -7,24 +7,34 @@ export default function GameNav({
   bonusFoundCount,
   totalBonus,
 }) {
-  const bonusLabel =
-    bonusFoundCount > 0 ? `${bonusFoundCount}/${totalBonus} bonus` : null;
-
   return (
-    <nav className="game-nav" aria-label="Game sections">
+    <nav className="game-nav game-nav-three" aria-label="Game sections">
       <button
         type="button"
-        className={view === 'tracker' ? 'active' : ''}
-        onClick={() => onChange('tracker')}
-        aria-current={view === 'tracker' ? 'page' : undefined}
+        className={view === 'states' ? 'active' : ''}
+        onClick={() => onChange('states')}
+        aria-current={view === 'states' ? 'page' : undefined}
       >
         <span className="nav-icon" aria-hidden>
           ⊞
         </span>
-        <span className="nav-label">Plates</span>
+        <span className="nav-label">States</span>
         <span className="nav-sub">
           {foundCount}/{totalStates}
-          {bonusLabel && ` · ${bonusLabel}`}
+        </span>
+      </button>
+      <button
+        type="button"
+        className={view === 'bonus' ? 'active' : ''}
+        onClick={() => onChange('bonus')}
+        aria-current={view === 'bonus' ? 'page' : undefined}
+      >
+        <span className="nav-icon" aria-hidden>
+          ★
+        </span>
+        <span className="nav-label">Bonus</span>
+        <span className="nav-sub">
+          {bonusFoundCount}/{totalBonus}
         </span>
       </button>
       <button

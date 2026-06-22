@@ -8,12 +8,40 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { THEUS50_SLUGS } from './theus50-slugs.js';
+import { BONUS_PLATE_CODES } from './bonus-plate-sources.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public', 'plates');
 const JS_OUT = path.join(ROOT, 'src', 'data', 'plateImages.js');
 const BASE = 'https://theus50.com/images/state-licenses';
+
+function readBonusFromDisk() {
+  const bonus = {};
+  for (const code of BONUS_PLATE_CODES) {
+    for (const ext of ['jpg', 'jpeg', 'png']) {
+      const file = path.join(OUT_DIR, `${code}.${ext}`);
+      if (fs.existsSync(file)) {
+        bonus[code] = `/plates/${code}.${ext}`;
+        break;
+      }
+    }
+  }
+  return bonus;
+}
+
+function writePlateImages(images) {
+  const sorted = Object.fromEntries(
+    Object.keys(images)
+      .sort()
+      .map((k) => [k, images[k]])
+  );
+  const js =
+    '/** US state plates: theus50.com · Bonus plates: Wikimedia Commons (npm run bonus-plates) */\n' +
+    `export const PLATE_IMAGES = ${JSON.stringify(sorted, null, 2)};\n\n` +
+    'export function getPlateImageUrl(code) {\n  return PLATE_IMAGES[code] ?? null;\n}\n';
+  fs.writeFileSync(JS_OUT, js);
+}
 
 async function downloadPlate(code, slug) {
   const url = `${BASE}/${slug}-license.jpg`;
@@ -30,9 +58,12 @@ async function downloadPlate(code, slug) {
 
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  // Remove stale files from previous sources (mixed extensions)
+  // Remove stale state files only — keep bonus plate images (CAN.jpg, etc.)
+  const stateCodes = new Set(Object.keys(THEUS50_SLUGS));
   for (const f of fs.readdirSync(OUT_DIR)) {
-    if (f !== '.gitkeep') fs.unlinkSync(path.join(OUT_DIR, f));
+    if (f === '.gitkeep') continue;
+    const code = f.replace(/\.[^.]+$/, '');
+    if (stateCodes.has(code)) fs.unlinkSync(path.join(OUT_DIR, f));
   }
   const images = {};
   const errors = [];
@@ -48,13 +79,9 @@ async function main() {
     }
   }
 
-  const js =
-    '/** Local plate images from https://theus50.com/fastfacts/licenses-state.php */\n' +
-    `export const PLATE_IMAGES = ${JSON.stringify(images, null, 2)};\n\n` +
-    'export function getPlateImageUrl(code) {\n  return PLATE_IMAGES[code] ?? null;\n}\n';
-  fs.writeFileSync(JS_OUT, js);
+  writePlateImages({ ...images, ...readBonusFromDisk() });
 
-  console.log(`\nDone: ${Object.keys(images).length}/50`);
+  console.log(`\nDone: ${Object.keys(images).length}/50 states (+ ${Object.keys(readBonusFromDisk()).length} bonus on disk)`);
   if (errors.length) {
     console.error(errors);
     process.exit(1);

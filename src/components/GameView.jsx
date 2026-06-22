@@ -5,7 +5,7 @@ import { STATES, TOTAL_STATES } from '../data/states';
 import { TOTAL_BONUS } from '../data/bonusPlates';
 import { splitFindings } from '../data/registry';
 import PlateGrid, { getFilterCounts } from './PlateGrid';
-import BonusSection from './BonusSection';
+import BonusPage from './BonusPage';
 import StateModal from './StateModal';
 import MapPage from './MapPage';
 import GameNav from './GameNav';
@@ -29,8 +29,9 @@ export default function GameView({
   error,
   setError,
 }) {
-  const [view, setView] = useState('tracker');
-  const [filter, setFilter] = useState('missing');
+  const [view, setView] = useState('states');
+  const [stateFilter, setStateFilter] = useState('missing');
+  const [bonusFilter, setBonusFilter] = useState('missing');
   const [selected, setSelected] = useState(null);
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -52,7 +53,7 @@ export default function GameView({
   const foundCount = stateFindings.length;
   const bonusFoundCount = bonusFindings.length;
   const mapCount = game.findings.filter(hasGeoCoords).length;
-  const filterCounts = getFilterCounts(STATES, stateFindings);
+  const stateFilterCounts = getFilterCounts(STATES, stateFindings);
   const safariHint = safariLocationHint();
   const showSafariBanner = safariHint && isIos() && isStandaloneApp() && !safariDismissed;
 
@@ -158,6 +159,8 @@ export default function GameView({
   const findingForSelected =
     selectedFinding ?? game.findings.find((f) => f.stateCode === selected?.code);
 
+  const showModal = selected && (view === 'states' || view === 'bonus');
+
   return (
     <div className="app game game-with-nav">
       <header className="game-top">
@@ -175,7 +178,7 @@ export default function GameView({
             ⋯
           </button>
         </div>
-        <TripProgress foundCount={foundCount} />
+        {view === 'states' && <TripProgress foundCount={foundCount} />}
       </header>
 
       {restoreMsg && (
@@ -223,25 +226,39 @@ export default function GameView({
         </div>
       )}
 
-      {view === 'tracker' ? (
+      {view === 'states' && (
         <>
           <StatsBar findings={game.findings} />
-          <GridToolbar filter={filter} onFilterChange={setFilter} counts={filterCounts} />
+          <GridToolbar
+            filter={stateFilter}
+            onFilterChange={setStateFilter}
+            counts={stateFilterCounts}
+          />
           <PlateGrid
             plates={STATES}
             findings={stateFindings}
             onSelect={openState}
-            filter={filter}
+            filter={stateFilter}
             emptyMessages={{
               found: 'No state plates found yet — switch to To find and tap one you spot.',
               missing: 'You found all 50 states! 🎉',
               rare: 'No rare state plates left to hunt — nice work!',
             }}
           />
-          <BonusSection bonusFindings={bonusFindings} onSelect={openState} />
         </>
-      ) : (
-        <MapPage findings={game.findings} onGoToPlates={() => setView('tracker')} />
+      )}
+
+      {view === 'bonus' && (
+        <BonusPage
+          bonusFindings={bonusFindings}
+          onSelect={openState}
+          filter={bonusFilter}
+          onFilterChange={setBonusFilter}
+        />
+      )}
+
+      {view === 'map' && (
+        <MapPage findings={game.findings} onGoToPlates={() => setView('states')} />
       )}
 
       <GameNav
@@ -268,7 +285,7 @@ export default function GameView({
         onLeave={handleLeave}
       />
 
-      {selected && view === 'tracker' && (
+      {showModal && (
         <StateModal
           state={selected}
           finding={findingForSelected}
