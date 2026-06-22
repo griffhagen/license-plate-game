@@ -1,4 +1,15 @@
-export default function GameNav({ view, onChange, mapCount, foundCount, totalStates }) {
+export default function GameNav({
+  view,
+  onChange,
+  mapCount,
+  foundCount,
+  totalStates,
+  bonusFoundCount,
+  totalBonus,
+}) {
+  const bonusLabel =
+    bonusFoundCount > 0 ? `${bonusFoundCount}/${totalBonus} bonus` : null;
+
   return (
     <nav className="game-nav" aria-label="Game sections">
       <button
@@ -11,7 +22,10 @@ export default function GameNav({ view, onChange, mapCount, foundCount, totalSta
           ⊞
         </span>
         <span className="nav-label">Plates</span>
-        <span className="nav-sub">{foundCount}/{totalStates}</span>
+        <span className="nav-sub">
+          {foundCount}/{totalStates}
+          {bonusLabel && ` · ${bonusLabel}`}
+        </span>
       </button>
       <button
         type="button"

@@ -5,6 +5,7 @@ import cors from 'cors';
 import { nanoid } from 'nanoid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { isValidPlateCode, normalizePlateCode } from '../src/data/registry.js';
 import {
   createGame,
   getGame,
@@ -89,10 +90,8 @@ function prepareRestoreData(game, playerName) {
   const seenStates = new Set();
   const findings = (game.findings || [])
     .map((f) => {
-      const stateCode = String(f.stateCode || f.state_code || '')
-        .trim()
-        .toUpperCase();
-      if (!stateCode || stateCode.length !== 2) return null;
+      const stateCode = normalizePlateCode(f.stateCode || f.state_code);
+      if (!isValidPlateCode(stateCode)) return null;
       const mappedPlayerId = idMap.get(f.playerId ?? f.player_id) || playerId;
       const owner =
         players.find((p) => p.id === mappedPlayerId) ||
@@ -202,7 +201,10 @@ app.post('/api/games/:id/join', (req, res) => {
 app.patch('/api/games/:id/findings/:stateCode', (req, res) => {
   const game = getGame(normalizeGameId(req.params.id));
   if (!game) return res.status(404).json({ error: 'Game not found' });
-  const stateCode = String(req.params.stateCode || '').trim().toUpperCase();
+  const stateCode = normalizePlateCode(req.params.stateCode);
+  if (!isValidPlateCode(stateCode)) {
+    return res.status(400).json({ error: 'Unknown plate code' });
+  }
   const { latitude, longitude, locationLabel } = req.body;
   const coords = coerceFindingCoords({ latitude, longitude, locationLabel });
   if (coords.latitude == null || coords.longitude == null) {
@@ -222,10 +224,14 @@ app.patch('/api/games/:id/findings/:stateCode', (req, res) => {
 
 app.post('/api/games/:id/findings', (req, res) => {
   const game = getGame(normalizeGameId(req.params.id));
-  const { stateCode, playerId, playerName, latitude, longitude, locationLabel } = req.body;
+  const { stateCode: rawCode, playerId, playerName, latitude, longitude, locationLabel } = req.body;
   if (!game) return res.status(404).json({ error: 'Game not found' });
+  const stateCode = normalizePlateCode(rawCode);
   if (!stateCode || !playerId || !playerName) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+  if (!isValidPlateCode(stateCode)) {
+    return res.status(400).json({ error: 'Unknown plate code' });
   }
   const coords = coerceFindingCoords({ latitude, longitude, locationLabel });
   try {
@@ -249,7 +255,11 @@ app.post('/api/games/:id/findings', (req, res) => {
 app.delete('/api/games/:id/findings/:stateCode', (req, res) => {
   const game = getGame(normalizeGameId(req.params.id));
   if (!game) return res.status(404).json({ error: 'Game not found' });
-  removeFinding(game.id, req.params.stateCode);
+  const stateCode = normalizePlateCode(req.params.stateCode);
+  if (!isValidPlateCode(stateCode)) {
+    return res.status(400).json({ error: 'Unknown plate code' });
+  }
+  removeFinding(game.id, stateCode);
   const payload = broadcastGame(game.id);
   res.json(payload);
 });

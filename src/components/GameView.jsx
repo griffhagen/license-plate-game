@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import StatsBar from './StatsBar';
 import SharePanel from './SharePanel';
-import StateGrid, { getFilterCounts } from './StateGrid';
+import { STATES, TOTAL_STATES } from '../data/states';
+import { TOTAL_BONUS } from '../data/bonusPlates';
+import { splitFindings } from '../data/registry';
+import PlateGrid, { getFilterCounts } from './PlateGrid';
+import BonusSection from './BonusSection';
 import StateModal from './StateModal';
 import MapPage from './MapPage';
 import GameNav from './GameNav';
@@ -13,7 +17,6 @@ import { hasGeoCoords } from '../utils/findingLocation';
 import { isIos, isStandaloneApp, safariLocationHint } from '../utils/device';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { downloadGameBackup } from '../utils/gameBackup';
-import { TOTAL_STATES } from '../data/states';
 
 const SAFARI_DISMISS_KEY = 'plate-safari-dismissed';
 
@@ -45,9 +48,11 @@ export default function GameView({
     }
   }, [restoreMsg]);
 
-  const foundCount = game.findings.length;
+  const { stateFindings, bonusFindings } = splitFindings(game.findings);
+  const foundCount = stateFindings.length;
+  const bonusFoundCount = bonusFindings.length;
   const mapCount = game.findings.filter(hasGeoCoords).length;
-  const filterCounts = getFilterCounts(game.findings);
+  const filterCounts = getFilterCounts(STATES, stateFindings);
   const safariHint = safariLocationHint();
   const showSafariBanner = safariHint && isIos() && isStandaloneApp() && !safariDismissed;
 
@@ -222,7 +227,18 @@ export default function GameView({
         <>
           <StatsBar findings={game.findings} />
           <GridToolbar filter={filter} onFilterChange={setFilter} counts={filterCounts} />
-          <StateGrid findings={game.findings} onSelect={openState} filter={filter} />
+          <PlateGrid
+            plates={STATES}
+            findings={stateFindings}
+            onSelect={openState}
+            filter={filter}
+            emptyMessages={{
+              found: 'No state plates found yet — switch to To find and tap one you spot.',
+              missing: 'You found all 50 states! 🎉',
+              rare: 'No rare state plates left to hunt — nice work!',
+            }}
+          />
+          <BonusSection bonusFindings={bonusFindings} onSelect={openState} />
         </>
       ) : (
         <MapPage findings={game.findings} onGoToPlates={() => setView('tracker')} />
@@ -234,6 +250,8 @@ export default function GameView({
         mapCount={mapCount}
         foundCount={foundCount}
         totalStates={TOTAL_STATES}
+        bonusFoundCount={bonusFoundCount}
+        totalBonus={TOTAL_BONUS}
       />
 
       <TripMenu

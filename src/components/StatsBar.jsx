@@ -1,10 +1,12 @@
 import { STATES, TOTAL_STATES } from '../data/states';
+import { isStateCode } from '../data/registry';
 
 export default function StatsBar({ findings }) {
-  const foundCount = findings.length;
+  const stateFindings = findings.filter((f) => isStateCode(f.stateCode));
+  const foundCount = stateFindings.length;
   const remaining = TOTAL_STATES - foundCount;
-  const foundCodes = new Set(findings.map((f) => f.stateCode));
-  const rarityEarned = findings.reduce((sum, f) => {
+  const foundCodes = new Set(stateFindings.map((f) => f.stateCode));
+  const rarityEarned = stateFindings.reduce((sum, f) => {
     const state = STATES.find((s) => s.code === f.stateCode);
     return sum + (state?.rarity ?? 0);
   }, 0);
@@ -18,7 +20,7 @@ export default function StatsBar({ findings }) {
     <div className="stats-bar">
       <div className="stat">
         <span className="stat-value">{foundCount}</span>
-        <span className="stat-label">Found</span>
+        <span className="stat-label">States</span>
       </div>
       <div className="stat">
         <span className="stat-value">{remaining}</span>

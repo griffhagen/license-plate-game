@@ -177,6 +177,10 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
 
       <section className="home-features">
         <div className="feature">
+          <span aria-hidden>🌎</span>
+          <p>Bonus plates: Canada, Mexico, D.C. & tribal nations</p>
+        </div>
+        <div className="feature">
           <span aria-hidden>📍</span>
           <p>Map where each plate was spotted</p>
         </div>

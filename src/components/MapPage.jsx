@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { STATE_BY_CODE } from '../data/states';
+import { getPlateByCode } from '../data/registry';
 import { getPlateImageUrl } from '../data/plateImages';
 import PlateImage from './PlateImage';
 import { hasGeoCoords } from '../utils/findingLocation';
@@ -29,9 +29,9 @@ function escapeHtml(str) {
 }
 
 function popupHtml(finding) {
-  const state = STATE_BY_CODE[finding.stateCode];
+  const plate = getPlateByCode(finding.stateCode);
   const code = escapeHtml(finding.stateCode);
-  const name = escapeHtml(state?.name ?? finding.stateCode);
+  const name = escapeHtml(plate?.name ?? finding.stateCode);
   const player = escapeHtml(finding.playerName);
   const rel = getPlateImageUrl(finding.stateCode);
   const imgUrl = rel ? `${window.location.origin}${rel}` : null;
@@ -133,9 +133,14 @@ export default function MapPage({ findings, onGoToPlates }) {
       <ul className="map-legend">
         {geoFindings.map((f) => (
           <li key={f.stateCode}>
-            <PlateImage code={f.stateCode} size="sm" className="legend-plate" />
+            <PlateImage
+              code={f.stateCode}
+              size="sm"
+              className="legend-plate"
+              emoji={getPlateByCode(f.stateCode)?.emoji}
+            />
             <span>
-              <strong>{STATE_BY_CODE[f.stateCode]?.name ?? f.stateCode}</strong>
+              <strong>{getPlateByCode(f.stateCode)?.name ?? f.stateCode}</strong>
               {f.locationLabel && <span className="legend-loc"> — {f.locationLabel}</span>}
             </span>
           </li>

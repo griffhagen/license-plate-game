@@ -34,16 +34,18 @@ export default function StateModal({
         <span className={`status-pill ${isFound ? 'found' : 'open'}`}>
           {isFound ? '✓ Found' : 'Not spotted yet'}
         </span>
+        {state.bonus && <span className="status-pill bonus-pill">Bonus</span>}
 
-        <div className={`modal-plate-frame ${isFound ? 'found' : ''}`}>
-          <PlateImage code={state.code} size="lg" className="modal-plate-img" />
+        <div className={`modal-plate-frame ${isFound ? 'found' : ''} ${state.bonus ? 'bonus' : ''}`}>
+          <PlateImage code={state.code} size="lg" className="modal-plate-img" emoji={state.emoji} />
         </div>
         <h2 id="state-modal-title">{state.name}</h2>
         <p className="rarity-badge">
           {rarityLabel(state.rarity)} · {state.rarity}/10 rarity
+          {state.bonus && ' · Bonus plate'}
         </p>
 
-        <StateFacts state={state} />
+        <StateFacts plate={state} />
 
         {isFound ? (
           <div className="finding-details">

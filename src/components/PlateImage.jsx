@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { getPlateImageUrl } from '../data/plateImages';
-import { STATE_BY_CODE } from '../data/states';
+import { getPlateByCode } from '../data/registry';
 
-export default function PlateImage({ code, className = '', size = 'md', alt }) {
+export default function PlateImage({ code, className = '', size = 'md', alt, emoji }) {
   const [failed, setFailed] = useState(false);
   const url = getPlateImageUrl(code);
-  const name = STATE_BY_CODE[code]?.name ?? code;
+  const plate = getPlateByCode(code);
+  const name = plate?.name ?? code;
+  const fallback = emoji ?? (code.length <= 3 ? code : code.slice(0, 3));
 
   if (!url || failed) {
     return (
-      <div className={`plate-fallback plate-fallback--${size} ${className}`} aria-hidden>
-        {code}
+      <div
+        className={`plate-fallback plate-fallback--${size} ${emoji ? 'plate-fallback--emoji' : ''} ${className}`}
+        aria-hidden
+      >
+        {fallback}
       </div>
     );
   }

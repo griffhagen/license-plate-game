@@ -1,3 +1,5 @@
+import { isValidPlateCode, normalizePlateCode } from '../data/registry.js';
+
 /** Normalize lat/lng/label from API, backup JSON, or legacy snake_case fields. */
 export function coerceCoord(value) {
   if (value == null || value === '') return null;
@@ -7,10 +9,8 @@ export function coerceCoord(value) {
 
 export function normalizeFinding(f) {
   if (!f || typeof f !== 'object') return null;
-  const stateCode = String(f.stateCode ?? f.state_code ?? '')
-    .trim()
-    .toUpperCase();
-  if (stateCode.length !== 2) return null;
+  const stateCode = normalizePlateCode(f.stateCode ?? f.state_code);
+  if (!isValidPlateCode(stateCode)) return null;
 
   const latitude = coerceCoord(f.latitude ?? f.lat);
   const longitude = coerceCoord(f.longitude ?? f.lng ?? f.lon);
