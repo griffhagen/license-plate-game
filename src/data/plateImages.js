@@ -1,4 +1,4 @@
-/** US state plates: theus50.com · Bonus plates: worldlicenseplates.com (see scripts/bonus-plate-sources.js) */
+/** US state plates: theus50.com · Bonus plates: Wikimedia + WLP singles (see scripts/bonus-plate-sources.js) */
 export const PLATE_IMAGES = {
   "AK": "/plates/AK.jpg",
   "AL": "/plates/AL.jpg",
@@ -11,7 +11,7 @@ export const PLATE_IMAGES = {
   "CHR": "/plates/CHR.jpg",
   "CO": "/plates/CO.jpg",
   "CT": "/plates/CT.jpg",
-  "DC": "/plates/DC.jpg",
+  "DC": "/plates/DC.png",
   "DE": "/plates/DE.jpg",
   "FL": "/plates/FL.jpg",
   "GA": "/plates/GA.jpg",

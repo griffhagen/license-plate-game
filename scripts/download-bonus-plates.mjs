@@ -53,7 +53,7 @@ function writePlateImages(images) {
       .map((k) => [k, images[k]])
   );
   const js =
-    '/** US state plates: theus50.com · Bonus plates: worldlicenseplates.com (see scripts/bonus-plate-sources.js) */\n' +
+    '/** US state plates: theus50.com · Bonus plates: Wikimedia + WLP singles (see scripts/bonus-plate-sources.js) */\n' +
     `export const PLATE_IMAGES = ${JSON.stringify(sorted, null, 2)};\n\n` +
     'export function getPlateImageUrl(code) {\n  return PLATE_IMAGES[code] ?? null;\n}\n';
   fs.writeFileSync(JS_OUT, js);

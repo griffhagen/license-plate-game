@@ -1,62 +1,61 @@
 /**
- * Bonus plate image sources from worldlicenseplates.com (Michael Kustermann).
- * Run: npm run bonus-plates
+ * Bonus plate display images — single-plate photos only (Wikimedia Commons or
+ * worldlicenseplates.com _OT/_NT files). Run: npm run bonus-plates
  *
- * Images are cached locally for offline PWA use. See site copyright notice:
- * http://www.worldlicenseplates.com
+ * Plate history / variations: see src/data/plateReferenceLinks.js (WLP pages).
  */
 const WLP = 'http://www.worldlicenseplates.com/jpglps';
 
 export const BONUS_PLATE_SOURCES = {
   CAN: {
-    url: `${WLP}/CN_ONTA_SIE.jpg`,
+    url: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Ontario_license_plate_-_QJQQJQ.jpg',
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Ontario, Canada',
+    credit: 'Wikimedia Commons — Ontario passenger plate',
   },
   MEX: {
     url: `${WLP}/MX_SONO_GI3.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Sonora, Mexico',
+    credit: 'worldlicenseplates.com — Sonora, Mexico (display); see WLP for variations',
   },
   DC: {
-    url: `${WLP}/US_DCXX_GI3.jpg`,
-    ext: 'jpg',
-    credit: 'worldlicenseplates.com — Washington, D.C.',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/Washington%2C_D.C._license_plate%2C_2017.png',
+    ext: 'png',
+    credit: 'Wikimedia Commons — Washington, D.C. plate',
   },
   CHR: {
-    url: `${WLP}/AI_OKCH_OT-C.jpg`,
+    url: 'https://upload.wikimedia.org/wikipedia/commons/8/88/Cherokee_Nation_of_Oklahoma_license_plate.JPG',
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Cherokee Nation',
+    credit: 'Wikimedia Commons — Cherokee Nation plate',
   },
   NAV: {
     url: `${WLP}/AI_NMNA_NT.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Navajo Nation',
+    credit: 'worldlicenseplates.com — Navajo Nation (single plate)',
   },
   CHK: {
-    url: `${WLP}/AI_OKCK_GI.jpg`,
+    url: `${WLP}/AI_OKCK_OT.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Chickasaw Nation',
+    credit: 'worldlicenseplates.com — Chickasaw Nation (single plate)',
   },
   CHO: {
-    url: `${WLP}/AI_OKCW_GI.jpg`,
+    url: `${WLP}/AI_OKCW_OT.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Choctaw Nation',
+    credit: 'worldlicenseplates.com — Choctaw Nation (single plate)',
   },
   MCG: {
-    url: `${WLP}/AI_OKMC_GI.jpg`,
+    url: `${WLP}/AI_OKMC_OT-C.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Muscogee (Creek) Nation',
+    credit: 'worldlicenseplates.com — Muscogee (Creek) Nation (single plate)',
   },
   OSG: {
-    url: `${WLP}/AI_OKOS_GI.jpg`,
+    url: `${WLP}/AI_OKOS_OT.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Osage Nation',
+    credit: 'worldlicenseplates.com — Osage Nation (single plate)',
   },
   SEM: {
-    url: `${WLP}/AI_OKSE_GI.jpg`,
+    url: `${WLP}/AI_OKSE_OT-M.jpg`,
     ext: 'jpg',
-    credit: 'worldlicenseplates.com — Seminole Nation',
+    credit: 'worldlicenseplates.com — Seminole Nation (single plate)',
   },
 };
 

@@ -1,4 +1,5 @@
 import { rarityLabel } from '../data/states';
+import { getPlateReferenceUrl } from '../data/plateReferenceLinks';
 import PlateImage from './PlateImage';
 import StateFacts from './StateFacts';
 import { hasGeoCoords } from '../utils/findingLocation';
@@ -17,6 +18,7 @@ export default function StateModal({
   const isFound = Boolean(finding);
   const hasLocation = isFound && hasGeoCoords(finding);
   const showSafariTip = isIos() && isStandaloneApp();
+  const plateReferenceUrl = getPlateReferenceUrl(state.code);
 
   return (
     <div className="modal-backdrop" onClick={onClose} role="presentation">
@@ -46,6 +48,17 @@ export default function StateModal({
         </p>
 
         <StateFacts plate={state} />
+
+        {plateReferenceUrl && (
+          <a
+            className="map-link plate-reference-link"
+            href={plateReferenceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            More plate designs on worldlicenseplates.com
+          </a>
+        )}
 
         {isFound ? (
           <div className="finding-details">
