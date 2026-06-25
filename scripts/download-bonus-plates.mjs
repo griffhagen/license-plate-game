@@ -13,6 +13,16 @@ const OUT_DIR = path.join(ROOT, 'public', 'plates');
 const JS_OUT = path.join(ROOT, 'src', 'data', 'plateImages.js');
 const UA = 'LicensePlateGame/1.0 (educational; local cache)';
 
+const BONUS_EXTS = ['jpg', 'jpeg', 'png', 'svg'];
+
+function removeStaleBonusFiles(code, keepExt) {
+  for (const ext of BONUS_EXTS) {
+    if (ext === keepExt) continue;
+    const file = path.join(OUT_DIR, `${code}.${ext}`);
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+  }
+}
+
 async function downloadPlate(code, { url, ext }) {
   const res = await fetch(url, {
     headers: { 'User-Agent': UA },
@@ -23,6 +33,7 @@ async function downloadPlate(code, { url, ext }) {
   if (buf.length < 400) throw new Error(`File too small (${buf.length}b)`);
   const localName = `${code}.${ext}`;
   fs.writeFileSync(path.join(OUT_DIR, localName), buf);
+  removeStaleBonusFiles(code, ext);
   return `/plates/${localName}`;
 }
 
@@ -42,7 +53,7 @@ function writePlateImages(images) {
       .map((k) => [k, images[k]])
   );
   const js =
-    '/** US state plates: theus50.com · Bonus plates: Wikimedia Commons (see scripts/bonus-plate-sources.js) */\n' +
+    '/** US state plates: theus50.com · Bonus plates: worldlicenseplates.com (see scripts/bonus-plate-sources.js) */\n' +
     `export const PLATE_IMAGES = ${JSON.stringify(sorted, null, 2)};\n\n` +
     'export function getPlateImageUrl(code) {\n  return PLATE_IMAGES[code] ?? null;\n}\n';
   fs.writeFileSync(JS_OUT, js);
