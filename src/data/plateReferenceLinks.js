@@ -57,8 +57,6 @@ export const WLP_STATE_PAGES = {
 
 /** @type {Record<string, string>} */
 export const WLP_BONUS_PAGES = {
-  CAN: `${WLP}/world/CN_ONTA.html`,
-  MEX: `${WLP}/world/MX_SONO.html`,
   DC: `${WLP}/usa/US_DCXX.html`,
   CHR: `${WLP}/usa/AI_OKCH.html`,
   NAV: `${WLP}/usa/AI_NMNA.html`,
@@ -69,6 +67,56 @@ export const WLP_BONUS_PAGES = {
   SEM: `${WLP}/usa/AI_OKSE.html`,
 };
 
+/** 15q.net (David Nicholson) detail pages for Canadian provinces and Mexican states. */
+const Q15 = 'http://www.15q.net';
+export const Q15_BONUS_PAGES = {
+  AB: `${Q15}/ab.html`,
+  BC: `${Q15}/bc.html`,
+  MB: `${Q15}/mb.html`,
+  NB: `${Q15}/nb.html`,
+  NL: `${Q15}/nl.html`,
+  NT: `${Q15}/nwt.html`,
+  NS: `${Q15}/ns.html`,
+  NU: `${Q15}/nu.html`,
+  ON: `${Q15}/on.html`,
+  PE: `${Q15}/pei.html`,
+  QC: `${Q15}/qc.html`,
+  SK: `${Q15}/sk.html`,
+  YT: `${Q15}/yt.html`,
+  AGU: `${Q15}/ags.html`,
+  BCN: `${Q15}/bcn.html`,
+  BCS: `${Q15}/bcs.html`,
+  CAM: `${Q15}/camp.html`,
+  COA: `${Q15}/coah.html`,
+  COL: `${Q15}/col.html`,
+  CHP: `${Q15}/chis.html`,
+  CHH: `${Q15}/chih.html`,
+  CMX: `${Q15}/df.html`,
+  DUR: `${Q15}/dgo.html`,
+  GUA: `${Q15}/gto.html`,
+  GRO: `${Q15}/gro.html`,
+  HID: `${Q15}/hgo.html`,
+  JAL: `${Q15}/jal.html`,
+  MEX: `${Q15}/mex.html`,
+  MIC: `${Q15}/mich.html`,
+  MOR: `${Q15}/mor.html`,
+  NAY: `${Q15}/nay.html`,
+  NLE: `${Q15}/nle.html`,
+  OAX: `${Q15}/oax.html`,
+  PUE: `${Q15}/pue.html`,
+  QUE: `${Q15}/qro.html`,
+  ROO: `${Q15}/qr.html`,
+  SLP: `${Q15}/slp.html`,
+  SIN: `${Q15}/sin.html`,
+  SON: `${Q15}/son.html`,
+  TAB: `${Q15}/tab.html`,
+  TAM: `${Q15}/tamps.html`,
+  TLA: `${Q15}/tlax.html`,
+  VER: `${Q15}/ver.html`,
+  YUC: `${Q15}/yuc.html`,
+  ZAC: `${Q15}/zac.html`,
+};
+
 export function getPlateReferenceUrl(code) {
-  return WLP_STATE_PAGES[code] ?? WLP_BONUS_PAGES[code] ?? null;
+  return WLP_STATE_PAGES[code] ?? WLP_BONUS_PAGES[code] ?? Q15_BONUS_PAGES[code] ?? null;
 }

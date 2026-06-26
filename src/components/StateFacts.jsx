@@ -2,7 +2,7 @@ import { formatPopulation } from '../data/stateDetails';
 
 export default function StateFacts({ plate }) {
   const isTribal = plate.label === 'Tribal nation plate';
-  const isIntl = plate.code === 'CAN' || plate.code === 'MEX';
+  const isIntl = plate.label === 'Canadian province plate' || plate.label === 'Mexican state plate';
   const isUsState = !plate.bonus;
 
   return (
@@ -66,6 +66,12 @@ export default function StateFacts({ plate }) {
           <div className="state-facts-item">
             <dt>Plate type</dt>
             <dd>Tribal nation</dd>
+          </div>
+        )}
+        {isIntl && (
+          <div className="state-facts-item">
+            <dt>Plate type</dt>
+            <dd>{plate.label === 'Canadian province plate' ? 'Canadian province' : 'Mexican state'}</dd>
           </div>
         )}
       </dl>

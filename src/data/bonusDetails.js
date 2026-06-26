@@ -1,19 +1,14 @@
 /** Extra facts for bonus plates (capital, population, symbols where they apply). */
+const CANADA_REGIONS = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
+const MEXICO_REGIONS = [
+  'AGU', 'BCN', 'BCS', 'CAM', 'CHH', 'CHP', 'CMX', 'COA', 'COL', 'DUR', 'GRO', 'GUA',
+  'HID', 'JAL', 'MEX', 'MIC', 'MOR', 'NAY', 'NLE', 'OAX', 'PUE', 'QUE', 'ROO', 'SIN',
+  'SLP', 'SON', 'TAB', 'TAM', 'TLA', 'VER', 'YUC', 'ZAC',
+];
+
 export const BONUS_DETAILS = {
-  CAN: {
-    capital: 'Ottawa',
-    population: 39000000,
-    bird: 'Gray Jay',
-    animal: 'Beaver',
-    region: 'North America',
-  },
-  MEX: {
-    capital: 'Mexico City',
-    population: 128000000,
-    bird: 'Golden Eagle',
-    animal: 'Jaguar',
-    region: 'North America',
-  },
+  ...Object.fromEntries(CANADA_REGIONS.map((c) => [c, { region: 'Canada', label: 'Canadian province plate' }])),
+  ...Object.fromEntries(MEXICO_REGIONS.map((c) => [c, { region: 'Mexico', label: 'Mexican state plate' }])),
   DC: {
     capital: 'Washington',
     population: 670000,

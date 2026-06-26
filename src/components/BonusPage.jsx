@@ -10,7 +10,7 @@ export default function BonusPage({ bonusFindings, onSelect, filter, onFilterCha
     <div className="bonus-page">
       <BonusProgress foundCount={bonusFindings.length} />
       <p className="bonus-page-intro">
-        Canada, Mexico, D.C., and tribal nation plates — extra credit beyond the 50 states.
+        Canadian provinces, Mexican states, D.C., and tribal nation plates — extra credit beyond the 50 states.
       </p>
       <GridToolbar
         filter={filter}
