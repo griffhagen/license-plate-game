@@ -10,6 +10,7 @@ import {
   createGame,
   getGame,
   addPlayer,
+  getPlayerByName,
   getPlayers,
   getFindings,
   addFinding,
@@ -192,8 +193,12 @@ app.post('/api/games/:id/join', (req, res) => {
   if (!playerName?.trim()) return res.status(400).json({ error: 'Player name is required' });
   const game = getGame(gameId);
   if (!game) return res.status(404).json({ error: 'Game not found' });
-  const playerId = nanoid(12);
-  addPlayer(playerId, game.id, playerName.trim());
+  const trimmedName = playerName.trim();
+  const existing = getPlayerByName(game.id, trimmedName);
+  const playerId = existing ? existing.id : nanoid(12);
+  if (!existing) {
+    addPlayer(playerId, game.id, trimmedName);
+  }
   broadcastGame(game.id);
   res.json({ ...gamePayload(game.id), playerId });
 });

@@ -6,6 +6,8 @@ export default function TripMenu({
   onLeave,
   theme,
   onToggleTheme,
+  showInstall,
+  onInstall,
 }) {
   if (!open) return null;
 
@@ -43,6 +45,17 @@ export default function TripMenu({
               <small>Save progress to this phone</small>
             </span>
           </button>
+          {showInstall && onInstall && (
+            <button type="button" className="trip-menu-item" onClick={onInstall}>
+              <span className="trip-menu-item-icon" aria-hidden>
+                📲
+              </span>
+              <span className="trip-menu-item-text">
+                <strong>Add to Home Screen</strong>
+                <small>Install the app for one-tap access</small>
+              </span>
+            </button>
+          )}
           {onToggleTheme && (
             <button type="button" className="trip-menu-item" onClick={onToggleTheme}>
               <span className="trip-menu-item-icon" aria-hidden>

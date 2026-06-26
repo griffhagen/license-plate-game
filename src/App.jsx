@@ -1,11 +1,13 @@
 import { useGame } from './hooks/useGame';
 import { useTheme } from './hooks/useTheme';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
 import HomeScreen from './components/HomeScreen';
 import GameView from './components/GameView';
 
 export default function App() {
   const gameHook = useGame();
   const themeHook = useTheme();
+  const installHook = useInstallPrompt();
   const { game, loading } = gameHook;
 
   if (loading) {
@@ -22,5 +24,5 @@ export default function App() {
     return <HomeScreen {...gameHook} {...themeHook} />;
   }
 
-  return <GameView {...gameHook} {...themeHook} />;
+  return <GameView {...gameHook} {...themeHook} {...installHook} />;
 }

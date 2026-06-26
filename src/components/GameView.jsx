@@ -33,10 +33,14 @@ export default function GameView({
   setError,
   theme,
   toggleTheme,
+  installed,
+  canPrompt,
+  promptInstall,
 }) {
   const [view, setView] = useState('states');
   const [stateFilter, setStateFilter] = useState('missing');
   const [stateSearch, setStateSearch] = useState('');
+  const [iosInstallHint, setIosInstallHint] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [bonusFilter, setBonusFilter] = useState('missing');
   const [selected, setSelected] = useState(null);
@@ -178,6 +182,19 @@ export default function GameView({
   const handleLeave = () => {
     setMenuOpen(false);
     leaveGame();
+  };
+
+  const handleInstall = async () => {
+    if (canPrompt) {
+      await promptInstall();
+      setMenuOpen(false);
+      return;
+    }
+    if (isIos()) {
+      setIosInstallHint(true);
+      return;
+    }
+    setMenuOpen(false);
   };
 
   const findingForSelected =
@@ -326,7 +343,25 @@ export default function GameView({
         onLeave={handleLeave}
         theme={theme}
         onToggleTheme={toggleTheme}
+        showInstall={!installed}
+        onInstall={handleInstall}
       />
+
+      {iosInstallHint && (
+        <div className="modal-backdrop" onClick={() => setIosInstallHint(false)} role="presentation">
+          <div className="modal sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add to Home Screen">
+            <div className="sheet-handle" aria-hidden />
+            <button type="button" className="modal-close" onClick={() => setIosInstallHint(false)} aria-label="Close">
+              ×
+            </button>
+            <h2>Add to Home Screen</h2>
+            <p className="install-hint-text">
+              Tap the Share icon <strong>⬆️</strong> in Safari's toolbar, then choose
+              <strong> "Add to Home Screen."</strong>
+            </p>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <StateModal

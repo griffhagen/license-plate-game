@@ -60,9 +60,50 @@ export function addPlayer(id, gameId, name) {
   db.prepare('INSERT INTO players (id, game_id, name) VALUES (?, ?, ?)').run(id, gameId, name);
 }
 
+export function getPlayerByName(gameId, name) {
+  return db
+    .prepare('SELECT * FROM players WHERE game_id = ? AND LOWER(name) = LOWER(?)')
+    .get(gameId, name.trim());
+}
+
 export function getPlayers(gameId) {
   return db.prepare('SELECT * FROM players WHERE game_id = ? ORDER BY joined_at').all(gameId);
 }
+
+/** Merge any pre-existing duplicate (same game + case-insensitive name) player rows,
+ *  keeping the earliest-joined row and reassigning the rest's findings to it. */
+function dedupeDuplicatePlayers() {
+  const players = db.prepare('SELECT * FROM players ORDER BY joined_at').all();
+  const byGame = new Map();
+  for (const p of players) {
+    if (!byGame.has(p.game_id)) byGame.set(p.game_id, []);
+    byGame.get(p.game_id).push(p);
+  }
+
+  const reassignFindings = db.prepare(
+    'UPDATE findings SET player_id = ?, player_name = ? WHERE player_id = ?'
+  );
+  const deletePlayer = db.prepare('DELETE FROM players WHERE id = ?');
+
+  const run = db.transaction(() => {
+    for (const list of byGame.values()) {
+      const canonicalByName = new Map();
+      for (const p of list) {
+        const key = p.name.trim().toLowerCase();
+        const canonical = canonicalByName.get(key);
+        if (!canonical) {
+          canonicalByName.set(key, p);
+          continue;
+        }
+        reassignFindings.run(canonical.id, canonical.name, p.id);
+        deletePlayer.run(p.id);
+      }
+    }
+  });
+  run();
+}
+
+dedupeDuplicatePlayers();
 
 export function getFindings(gameId) {
   return db

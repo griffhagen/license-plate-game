@@ -1673,3 +1673,10 @@ body {
   white-space: pre-wrap;
   color: var(--text);
 }
+
+.install-hint-text {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+}
