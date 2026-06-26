@@ -59,14 +59,14 @@ const MEXICO_BASE = [
 
 /** Bonus plates — tracked separately from the 50 US states. */
 const BONUS_BASE = [
-  ...CANADA_BASE.map((p) => ({ ...p, emoji: '🇨🇦', category: 'Canadian provinces' })),
-  ...MEXICO_BASE.map((p) => ({ ...p, emoji: '🇲🇽', category: 'Mexican states' })),
+  ...CANADA_BASE.map((p) => ({ ...p, emoji: '🇨🇦', category: 'Canada' })),
+  ...MEXICO_BASE.map((p) => ({ ...p, emoji: '🇲🇽', category: 'Mexico' })),
   {
     code: 'DC',
     name: 'Washington, D.C.',
     rarity: 7,
     emoji: '🏛️',
-    category: 'Capital district',
+    category: 'United States',
     fact: 'D.C. plates read “Taxation Without Representation” — the district is not a state.',
   },
   {
@@ -74,7 +74,7 @@ const BONUS_BASE = [
     name: 'Cherokee Nation',
     rarity: 9,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'The Cherokee Nation issues its own tribal plate to citizens in Oklahoma.',
   },
   {
@@ -82,7 +82,7 @@ const BONUS_BASE = [
     name: 'Navajo Nation',
     rarity: 9,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'One of the largest tribal plates in the U.S. — seen across Arizona, New Mexico, and Utah.',
   },
   {
@@ -90,7 +90,7 @@ const BONUS_BASE = [
     name: 'Chickasaw Nation',
     rarity: 10,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'Chickasaw Nation plates feature tribal seal artwork and are issued in Oklahoma.',
   },
   {
@@ -98,7 +98,7 @@ const BONUS_BASE = [
     name: 'Choctaw Nation',
     rarity: 10,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'The Choctaw Nation offers distinctive plates to tribal citizens in southeastern Oklahoma.',
   },
   {
@@ -106,7 +106,7 @@ const BONUS_BASE = [
     name: 'Muscogee (Creek) Nation',
     rarity: 10,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'Muscogee Nation plates are issued to citizens — a rare find outside Oklahoma.',
   },
   {
@@ -114,7 +114,7 @@ const BONUS_BASE = [
     name: 'Osage Nation',
     rarity: 10,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'Osage Nation tribal plates are most often spotted in northeastern Oklahoma.',
   },
   {
@@ -122,7 +122,7 @@ const BONUS_BASE = [
     name: 'Seminole Nation',
     rarity: 10,
     emoji: '★',
-    category: 'Tribal nations',
+    category: 'United States',
     fact: 'Seminole Nation of Oklahoma issues plates to enrolled citizens.',
   },
 ];

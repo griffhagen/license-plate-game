@@ -23,6 +23,7 @@ export default function BonusPage({ bonusFindings, onSelect, filter, onFilterCha
         findings={bonusFindings}
         onSelect={onSelect}
         filter={filter}
+        groupByCategory
         emptyMessages={{
           found: 'No bonus plates logged yet — switch to To find.',
           missing: 'You found every bonus plate! 🎉',
