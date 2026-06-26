@@ -278,9 +278,16 @@ if (isProd) {
   const distPath = join(__dirname, '..', 'dist');
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io')) {
-      res.sendFile(join(distPath, 'index.html'));
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+      return res.status(404).end();
     }
+    // Static assets that 404 (e.g. a stale client requesting a JS/CSS bundle
+    // from a previous deploy) must 404, not fall back to index.html — serving
+    // HTML in place of a missing script/stylesheet breaks page execution.
+    if (/\.[a-zA-Z0-9]+$/.test(req.path)) {
+      return res.status(404).end();
+    }
+    res.sendFile(join(distPath, 'index.html'));
   });
 }
 
