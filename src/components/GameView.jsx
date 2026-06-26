@@ -8,6 +8,7 @@ import PlateGrid, { getFilterCounts } from './PlateGrid';
 import BonusPage from './BonusPage';
 import StateModal from './StateModal';
 import MapPage from './MapPage';
+import StatsPage from './StatsPage';
 import GameNav from './GameNav';
 import TripProgress from './TripProgress';
 import GridToolbar from './GridToolbar';
@@ -17,6 +18,7 @@ import { hasGeoCoords } from '../utils/findingLocation';
 import { isIos, isStandaloneApp, safariLocationHint } from '../utils/device';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { downloadGameBackup } from '../utils/gameBackup';
+import { playFoundFeedback } from '../utils/feedback';
 
 const SAFARI_DISMISS_KEY = 'plate-safari-dismissed';
 
@@ -29,9 +31,12 @@ export default function GameView({
   refreshGame,
   error,
   setError,
+  theme,
+  toggleTheme,
 }) {
   const [view, setView] = useState('states');
   const [stateFilter, setStateFilter] = useState('missing');
+  const [stateSearch, setStateSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [bonusFilter, setBonusFilter] = useState('missing');
   const [selected, setSelected] = useState(null);
@@ -115,14 +120,19 @@ export default function GameView({
 
     if (withoutLocation) {
       markFound(selected.code, { latitude: null, longitude: null, label: null })
-        .then(() => closeModal())
+        .then(() => {
+          playFoundFeedback();
+          closeModal();
+        })
         .catch((err) => setError(err.message))
         .finally(() => setBusy(false));
       return;
     }
 
     const locationPromise = startLocationCapture();
-    locationPromise.then((geo) => finishWithGeo(geo, (g) => markFound(selected.code, g)));
+    locationPromise.then((geo) =>
+      finishWithGeo(geo, (g) => markFound(selected.code, g).then(() => playFoundFeedback()))
+    );
   };
 
   const handleAddLocation = () => {
@@ -258,12 +268,16 @@ export default function GameView({
             filter={stateFilter}
             onFilterChange={setStateFilter}
             counts={stateFilterCounts}
+            search={stateSearch}
+            onSearchChange={setStateSearch}
+            searchPlaceholder="Search states…"
           />
           <PlateGrid
             plates={STATES}
             findings={stateFindings}
             onSelect={openState}
             filter={stateFilter}
+            search={stateSearch}
             emptyMessages={{
               found: 'No state plates found yet — switch to To find and tap one you spot.',
               missing: 'You found all 50 states! 🎉',
@@ -285,6 +299,8 @@ export default function GameView({
       {view === 'map' && (
         <MapPage findings={game.findings} onGoToPlates={() => setView('states')} />
       )}
+
+      {view === 'stats' && <StatsPage game={game} />}
 
       <GameNav
         view={view}
@@ -308,6 +324,8 @@ export default function GameView({
           setMenuOpen(false);
         }}
         onLeave={handleLeave}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {showModal && (

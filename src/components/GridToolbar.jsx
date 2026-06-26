@@ -5,10 +5,40 @@ const FILTERS = [
   { id: 'rare', label: 'Rare ★' },
 ];
 
-export default function GridToolbar({ filter, onFilterChange, counts, hint }) {
+export default function GridToolbar({
+  filter,
+  onFilterChange,
+  counts,
+  hint,
+  search,
+  onSearchChange,
+  searchPlaceholder = 'Search…',
+}) {
   return (
     <div className="grid-toolbar">
       <p className="grid-toolbar-hint">{hint ?? 'Tap a plate to log a sighting'}</p>
+      {onSearchChange && (
+        <div className="grid-search">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
+            className="grid-search-input"
+          />
+          {search && (
+            <button
+              type="button"
+              className="grid-search-clear"
+              onClick={() => onSearchChange('')}
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
       <div className="filter-chips" role="tablist" aria-label="Filter plates">
         {FILTERS.map((f) => (
           <button

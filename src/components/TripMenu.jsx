@@ -4,6 +4,8 @@ export default function TripMenu({
   onInvite,
   onExport,
   onLeave,
+  theme,
+  onToggleTheme,
 }) {
   if (!open) return null;
 
@@ -41,6 +43,17 @@ export default function TripMenu({
               <small>Save progress to this phone</small>
             </span>
           </button>
+          {onToggleTheme && (
+            <button type="button" className="trip-menu-item" onClick={onToggleTheme}>
+              <span className="trip-menu-item-icon" aria-hidden>
+                {theme === 'light' ? '☀️' : '🌙'}
+              </span>
+              <span className="trip-menu-item-text">
+                <strong>{theme === 'light' ? 'Light mode' : 'Dark mode'}</strong>
+                <small>Tap to switch theme</small>
+              </span>
+            </button>
+          )}
           <button type="button" className="trip-menu-item trip-menu-item-danger" onClick={onLeave}>
             <span className="trip-menu-item-icon" aria-hidden>
               ←

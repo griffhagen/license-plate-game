@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { getPlateByCode } from '../data/registry';
 import { getPlateImageUrl } from '../data/plateImages';
 import PlateImage from './PlateImage';
@@ -77,18 +80,19 @@ export default function MapPage({ findings, onGoToPlates }) {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
+    const clusterGroup = L.markerClusterGroup({ maxClusterRadius: 50 });
     const markers = geoFindings.map((f) => {
       const m = L.marker([f.latitude, f.longitude], { icon: defaultIcon });
       m.bindPopup(popupHtml(f), { maxWidth: 260 });
-      m.addTo(map);
+      clusterGroup.addLayer(m);
       return m;
     });
+    map.addLayer(clusterGroup);
 
     if (markers.length === 1) {
       map.setView([geoFindings[0].latitude, geoFindings[0].longitude], 10);
     } else if (markers.length > 1) {
-      const group = L.featureGroup(markers);
-      map.fitBounds(group.getBounds().pad(0.15));
+      map.fitBounds(clusterGroup.getBounds().pad(0.15));
     }
 
     mapRef.current = map;

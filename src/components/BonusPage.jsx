@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { BONUS_PLATES } from '../data/bonusPlates';
 import PlateGrid, { getFilterCounts } from './PlateGrid';
 import GridToolbar from './GridToolbar';
 import BonusProgress from './BonusProgress';
 
 export default function BonusPage({ bonusFindings, onSelect, filter, onFilterChange }) {
+  const [search, setSearch] = useState('');
   const filterCounts = getFilterCounts(BONUS_PLATES, bonusFindings);
 
   return (
@@ -17,12 +19,16 @@ export default function BonusPage({ bonusFindings, onSelect, filter, onFilterCha
         onFilterChange={onFilterChange}
         counts={filterCounts}
         hint="Tap a bonus plate when you spot one on the road"
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search bonus plates…"
       />
       <PlateGrid
         plates={BONUS_PLATES}
         findings={bonusFindings}
         onSelect={onSelect}
         filter={filter}
+        search={search}
         groupByCategory
         emptyMessages={{
           found: 'No bonus plates logged yet — switch to To find.',

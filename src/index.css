@@ -16,6 +16,19 @@
   font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
+:root[data-theme='light'] {
+  --bg: #f4f8f6;
+  --bg-card: #ffffff;
+  --bg-elevated: #e3ede8;
+  --text: #11251f;
+  --text-muted: #5b746c;
+  --accent: #c98f00;
+  --accent-dim: #a87600;
+  --found: #1e9c6b;
+  --danger: #c93f3f;
+  --shadow: 0 8px 24px rgba(17, 37, 31, 0.12);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -489,6 +502,43 @@ body {
   font-size: 0.82rem;
   color: var(--text-muted);
   margin-bottom: 10px;
+}
+
+.grid-search {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.grid-search-input {
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.grid-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.grid-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.grid-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px;
 }
 
 .filter-chips {
@@ -1005,11 +1055,11 @@ body {
 
 .state-flag {
   display: block;
-  width: 64px;
-  height: 43px;
+  width: 128px;
+  height: 85px;
   object-fit: contain;
-  margin: 0 auto 14px;
-  border-radius: 4px;
+  margin: 0 auto 16px;
+  border-radius: 6px;
   box-shadow: 0 0 0 1px var(--bg-elevated);
   background: var(--bg-card);
 }
@@ -1241,15 +1291,15 @@ body {
   color: var(--accent);
 }
 
-.game-nav-three button {
+.game-nav-four button {
   padding: 8px 4px 6px;
 }
 
-.game-nav-three .nav-icon {
+.game-nav-four .nav-icon {
   font-size: 1.2rem;
 }
 
-.game-nav-three .nav-label {
+.game-nav-four .nav-label {
   font-size: 0.68rem;
 }
 
@@ -1271,7 +1321,7 @@ body {
 }
 
 @media (max-width: 380px) {
-  .game-nav-three .nav-sub {
+  .game-nav-four .nav-sub {
     font-size: 0.58rem;
   }
 }
@@ -1504,4 +1554,122 @@ body {
 .leaflet-container {
   font-family: inherit;
   background: #1a2e28;
+}
+
+.stats-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.stats-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+.leaderboard-row.leaderboard-lead {
+  background: var(--bg-elevated);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.leaderboard-rank {
+  width: 22px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.leaderboard-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.leaderboard-score {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.achievements-summary {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  opacity: 0.55;
+}
+
+.achievement-item.earned {
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.achievement-emoji {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.achievement-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.achievement-text small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.achievement-check {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.trip-recap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trip-recap-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--text);
 }

@@ -1,9 +1,11 @@
 import { useGame } from './hooks/useGame';
+import { useTheme } from './hooks/useTheme';
 import HomeScreen from './components/HomeScreen';
 import GameView from './components/GameView';
 
 export default function App() {
   const gameHook = useGame();
+  const themeHook = useTheme();
   const { game, loading } = gameHook;
 
   if (loading) {
@@ -17,8 +19,8 @@ export default function App() {
   }
 
   if (!game) {
-    return <HomeScreen {...gameHook} />;
+    return <HomeScreen {...gameHook} {...themeHook} />;
   }
 
-  return <GameView {...gameHook} />;
+  return <GameView {...gameHook} {...themeHook} />;
 }

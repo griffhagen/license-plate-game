@@ -15,6 +15,13 @@ function matchesFilter(plate, found, filter) {
   return true;
 }
 
+function matchesSearch(plate, query) {
+  if (!query) return true;
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return plate.name.toLowerCase().includes(q) || plate.code.toLowerCase().includes(q);
+}
+
 function displayCode(code) {
   return code.length <= 3 ? code : code.slice(0, 3);
 }
@@ -59,21 +66,25 @@ export default function PlateGrid({
   filter = 'all',
   emptyMessages = {},
   groupByCategory: shouldGroup = false,
+  search = '',
 }) {
   const findingMap = Object.fromEntries(findings.map((f) => [f.stateCode, f]));
-  const visible = plates.filter((plate) =>
-    matchesFilter(plate, Boolean(findingMap[plate.code]), filter)
+  const visible = plates.filter(
+    (plate) =>
+      matchesFilter(plate, Boolean(findingMap[plate.code]), filter) && matchesSearch(plate, search)
   );
 
   if (visible.length === 0) {
     return (
       <p className="grid-empty">
-        {emptyMessages[filter] ??
-          (filter === 'found'
-            ? 'None found yet.'
-            : filter === 'missing'
-              ? 'All found!'
-              : 'Nothing to show.')}
+        {search
+          ? `No plates match “${search}.”`
+          : emptyMessages[filter] ??
+            (filter === 'found'
+              ? 'None found yet.'
+              : filter === 'missing'
+                ? 'All found!'
+                : 'Nothing to show.')}
       </p>
     );
   }

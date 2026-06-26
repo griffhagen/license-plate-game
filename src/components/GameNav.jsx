@@ -8,7 +8,7 @@ export default function GameNav({
   totalBonus,
 }) {
   return (
-    <nav className="game-nav game-nav-three" aria-label="Game sections">
+    <nav className="game-nav game-nav-four" aria-label="Game sections">
       <button
         type="button"
         className={view === 'states' ? 'active' : ''}
@@ -52,6 +52,17 @@ export default function GameNav({
         ) : (
           <span className="nav-sub">GPS</span>
         )}
+      </button>
+      <button
+        type="button"
+        className={view === 'stats' ? 'active' : ''}
+        onClick={() => onChange('stats')}
+        aria-current={view === 'stats' ? 'page' : undefined}
+      >
+        <span className="nav-icon" aria-hidden>
+          🏆
+        </span>
+        <span className="nav-label">Stats</span>
       </button>
     </nav>
   );
