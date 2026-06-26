@@ -80,7 +80,11 @@ export default function StateFacts({ plate }) {
         <p className="state-fact">{plate.fact}</p>
         {isUsState && (
           <p className="state-fact-source">
-            Population and symbols from{' '}
+            Fun fact from{' '}
+            <a href="https://www.infoplease.com/us/states/fifty-states-and-fifty-fun-facts" target="_blank" rel="noopener noreferrer">
+              Infoplease
+            </a>
+            . Population and symbols from{' '}
             <a
               href={`https://www.census.gov/schools/statefacts/state.php?${plate.name.toLowerCase().replace(/\s+/g, '_')}`}
               target="_blank"
