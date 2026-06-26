@@ -156,6 +156,12 @@ export function useGame() {
     applyGame(data, playerId);
   };
 
+  const refreshGame = async () => {
+    if (!game?.id) return;
+    const data = await api.getGame(game.id);
+    applyGame(data, playerId);
+  };
+
   return {
     game,
     playerId,
@@ -169,5 +175,6 @@ export function useGame() {
     markFound,
     unmarkFound,
     addLocationToFinding,
+    refreshGame,
   };
 }

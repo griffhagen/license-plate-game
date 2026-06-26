@@ -255,6 +255,24 @@ body {
   flex-shrink: 0;
 }
 
+.btn-icon:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-icon-spinning {
+  animation: btn-icon-spin 0.8s linear infinite;
+}
+
+@keyframes btn-icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .btn-copy {
   padding: 8px 14px;
   border: none;
@@ -354,6 +372,12 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+}
+
+.game-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .game-eyebrow {
@@ -977,6 +1001,17 @@ body {
 
 .state-facts {
   margin-bottom: 18px;
+}
+
+.state-flag {
+  display: block;
+  width: 64px;
+  height: 43px;
+  object-fit: contain;
+  margin: 0 auto 14px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--bg-elevated);
+  background: var(--bg-card);
 }
 
 .state-facts-grid {

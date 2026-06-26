@@ -26,11 +26,13 @@ export default function GameView({
   markFound,
   unmarkFound,
   addLocationToFinding,
+  refreshGame,
   error,
   setError,
 }) {
   const [view, setView] = useState('states');
   const [stateFilter, setStateFilter] = useState('missing');
+  const [refreshing, setRefreshing] = useState(false);
   const [bonusFilter, setBonusFilter] = useState('missing');
   const [selected, setSelected] = useState(null);
   const [selectedFinding, setSelectedFinding] = useState(null);
@@ -80,6 +82,18 @@ export default function GameView({
   const closeModal = () => {
     setSelected(null);
     setSelectedFinding(null);
+  };
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await refreshGame();
+    } catch {
+      setError('Could not refresh — check your connection.');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const finishWithGeo = (geo, save) => {
@@ -169,14 +183,25 @@ export default function GameView({
             <span className="game-eyebrow">Road trip</span>
             <h1>{game.name}</h1>
           </div>
-          <button
-            type="button"
-            className="btn-icon"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Trip menu"
-          >
-            ⋯
-          </button>
+          <div className="game-top-actions">
+            <button
+              type="button"
+              className={`btn-icon ${refreshing ? 'btn-icon-spinning' : ''}`}
+              onClick={handleRefresh}
+              aria-label="Refresh trip data"
+              disabled={refreshing}
+            >
+              ⟳
+            </button>
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Trip menu"
+            >
+              ⋯
+            </button>
+          </div>
         </div>
         {view === 'states' && <TripProgress foundCount={foundCount} />}
       </header>

@@ -7,6 +7,14 @@ export default function StateFacts({ plate }) {
 
   return (
     <section className="state-facts" aria-label={`About ${plate.name}`}>
+      {isUsState && (
+        <img
+          src={`/flags/${plate.code}.svg`}
+          alt={`Flag of ${plate.name}`}
+          className="state-flag"
+          loading="lazy"
+        />
+      )}
       <dl className="state-facts-grid">
         {plate.nickname && isUsState && (
           <div className="state-facts-item">
