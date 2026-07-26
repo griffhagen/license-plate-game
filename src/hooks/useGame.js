@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import * as api from '../api';
 import { clearJoinFromUrl, getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { hasGeoCoords } from '../utils/findingLocation';
+import {
+  addPending,
+  clearPending,
+  loadPending,
+  mergePending,
+  removePending,
+} from '../utils/pendingFindings';
 
 const SESSION_KEY = 'plate-game-session';
 
@@ -28,17 +35,60 @@ export function useGame() {
   const [playerId, setPlayerId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
-  const applyGame = useCallback((data, pid) => {
+  // Last payload the server sent, kept so queued finds can be re-merged onto it
+  // without another round trip.
+  const serverGameRef = useRef(null);
+  const pendingRef = useRef([]);
+
+  const publish = useCallback((serverGame, pid) => {
+    if (!serverGame) return;
     setGame({
-      id: data.id,
-      name: data.name,
-      createdAt: data.createdAt,
-      players: data.players,
-      findings: data.findings,
+      id: serverGame.id,
+      name: serverGame.name,
+      createdAt: serverGame.createdAt,
+      players: serverGame.players,
+      findings: mergePending(serverGame.findings, pendingRef.current),
     });
+    setPendingCount(pendingRef.current.length);
     if (pid) setPlayerId(pid);
   }, []);
+
+  const applyGame = useCallback(
+    (data, pid) => {
+      serverGameRef.current = data;
+      pendingRef.current = loadPending(data.id);
+      publish(data, pid);
+    },
+    [publish]
+  );
+
+  /**
+   * Replay queued finds. Safe to call often — it no-ops when the queue is empty.
+   * Declared before the effects that list it as a dependency: those dependency
+   * arrays are evaluated during render, so a later `const` would be in its
+   * temporal dead zone and throw.
+   */
+  const flushPending = useCallback(async () => {
+    const gameId = serverGameRef.current?.id;
+    if (!gameId || !pendingRef.current.length) return;
+
+    for (const item of [...pendingRef.current]) {
+      try {
+        serverGameRef.current = await api.addFinding(gameId, item);
+        pendingRef.current = removePending(gameId, item.stateCode);
+      } catch (err) {
+        // Still offline — leave the rest queued for the next attempt.
+        if (err.offline) break;
+        // The server rejected it (409 someone else logged the plate first, or
+        // 400 for a bad code). Retrying can never succeed, so drop it instead
+        // of letting it block everything behind it.
+        pendingRef.current = removePending(gameId, item.stateCode);
+      }
+    }
+    publish(serverGameRef.current, null);
+  }, [publish]);
 
   useEffect(() => {
     const joinFromUrl = getJoinGameIdFromUrl();
@@ -76,10 +126,23 @@ export function useGame() {
     // joining once means live updates stop for good after the first blip.
     // The server replies to game:join with a full game:update, which also
     // resyncs anything missed while offline.
-    socket.on('connect', () => socket.emit('game:join', game.id));
+    socket.on('connect', () => {
+      socket.emit('game:join', game.id);
+      // Back online: push anything caught in a dead zone.
+      flushPending();
+    });
     socket.on('game:update', (data) => applyGame(data));
     return () => socket.disconnect();
-  }, [game?.id, applyGame]);
+  }, [game?.id, applyGame, flushPending]);
+
+  // The socket can stay down while the network is back (captive portals, tab
+  // throttling), so listen for the browser's own signal too.
+  useEffect(() => {
+    if (!game?.id) return undefined;
+    const onOnline = () => flushPending();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [game?.id, flushPending]);
 
   const startGame = async (name, playerName) => {
     setError(null);
@@ -103,7 +166,11 @@ export function useGame() {
   };
 
   const leaveGame = () => {
+    if (game?.id) clearPending(game.id);
     clearSession();
+    pendingRef.current = [];
+    serverGameRef.current = null;
+    setPendingCount(0);
     setGame(null);
     setPlayerId(null);
   };
@@ -138,15 +205,28 @@ export function useGame() {
   const markFound = async (stateCode, geo) => {
     const session = loadSession();
     if (!game?.id || !session) return;
-    const data = await api.addFinding(game.id, {
+    const finding = {
       stateCode,
       playerId: session.playerId,
       playerName: session.playerName,
-      latitude: geo?.latitude,
-      longitude: geo?.longitude,
+      latitude: geo?.latitude ?? null,
+      longitude: geo?.longitude ?? null,
       locationLabel: geo?.label ?? null,
-    });
-    applyGame(data, session.playerId);
+    };
+
+    try {
+      const data = await api.addFinding(game.id, finding);
+      applyGame(data, session.playerId);
+    } catch (err) {
+      // A rejection from the server is real and belongs in front of the user.
+      // A dead connection is not: queue the find and show it as caught.
+      if (!err.offline) throw err;
+      pendingRef.current = addPending(game.id, {
+        ...finding,
+        foundAt: new Date().toISOString(),
+      });
+      publish(serverGameRef.current, session.playerId);
+    }
   };
 
   const addLocationToFinding = async (stateCode, geo) => {
@@ -157,6 +237,13 @@ export function useGame() {
 
   const unmarkFound = async (stateCode) => {
     if (!game?.id) return;
+    // A find that never reached the server is undone by dropping it from the
+    // queue — no connection needed.
+    if (pendingRef.current.some((f) => f.stateCode === stateCode)) {
+      pendingRef.current = removePending(game.id, stateCode);
+      publish(serverGameRef.current, playerId);
+      return;
+    }
     const data = await api.removeFinding(game.id, stateCode);
     applyGame(data, playerId);
   };
@@ -173,6 +260,8 @@ export function useGame() {
     loading,
     error,
     setError,
+    pendingCount,
+    flushPending,
     startGame,
     joinExisting,
     leaveGame,

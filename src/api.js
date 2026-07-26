@@ -1,10 +1,26 @@
+/**
+ * Errors carry either `offline` (the request never reached the server) or
+ * `status` (the server answered and rejected it). Callers need to tell these
+ * apart: an offline write is worth queueing and retrying, a rejected one is not.
+ */
 async function request(path, options = {}) {
-  const res = await fetch(`/api${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  });
+  let res;
+  try {
+    res = await fetch(`/api${path}`, {
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      ...options,
+    });
+  } catch {
+    const err = new Error('No connection — check your signal.');
+    err.offline = true;
+    throw err;
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Something went wrong');
+  if (!res.ok) {
+    const err = new Error(data.error || 'Something went wrong');
+    err.status = res.status;
+    throw err;
+  }
   return data;
 }
 

@@ -31,6 +31,8 @@ export default function GameView({
   refreshGame,
   error,
   setError,
+  pendingCount,
+  flushPending,
   theme,
   toggleTheme,
   installed,
@@ -260,6 +262,21 @@ export default function GameView({
             </button>
           </div>
         </aside>
+      )}
+
+      {pendingCount > 0 && (
+        <div className="toast toast-warn" role="status">
+          <p>
+            {pendingCount} plate{pendingCount !== 1 ? 's' : ''} saved on this phone,
+            waiting for signal. {pendingCount !== 1 ? 'They' : 'It'}&apos;ll sync
+            automatically.
+          </p>
+          <div className="toast-actions">
+            <button type="button" className="btn-text" onClick={() => flushPending()}>
+              Try now
+            </button>
+          </div>
+        </div>
       )}
 
       {error && (
