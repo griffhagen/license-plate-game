@@ -2,7 +2,27 @@ import { useRef, useState, useEffect } from 'react';
 import { getJoinGameIdFromUrl } from '../utils/joinUrl';
 import { readBackupFile } from '../utils/gameBackup';
 
-export default function HomeScreen({ startGame, joinExisting, importBackup, error, setError }) {
+function timeAgo(iso) {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return '';
+  const days = Math.floor((Date.now() - then) / 86400000);
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 30) return `${days} days ago`;
+  const months = Math.round(days / 30);
+  return months === 1 ? 'a month ago' : `${months} months ago`;
+}
+
+export default function HomeScreen({
+  startGame,
+  joinExisting,
+  importBackup,
+  error,
+  setError,
+  trips = [],
+  resumeTrip,
+  forgetTripById,
+}) {
   const joinFromUrl = getJoinGameIdFromUrl();
   const [mode, setMode] = useState(joinFromUrl ? 'join' : 'start');
   const [gameName, setGameName] = useState('');
@@ -125,6 +145,49 @@ export default function HomeScreen({ startGame, joinExisting, importBackup, erro
           {submitting ? 'Loading…' : mode === 'start' ? 'Start trip' : 'Join trip'}
         </button>
       </form>
+
+      {trips.length > 0 && (
+        <section className="past-trips card" aria-labelledby="past-trips-heading">
+          <h2 id="past-trips-heading">Past trips</h2>
+          <ul>
+            {trips.map((trip) => (
+              <li key={trip.gameId}>
+                <button
+                  type="button"
+                  className="past-trip-open"
+                  disabled={submitting}
+                  onClick={async () => {
+                    setError(null);
+                    setSubmitting(true);
+                    try {
+                      await resumeTrip(trip);
+                    } catch (err) {
+                      setError(err.message);
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                >
+                  <span className="past-trip-name">{trip.name}</span>
+                  <span className="past-trip-meta">
+                    {trip.foundCount} plate{trip.foundCount === 1 ? '' : 's'} ·{' '}
+                    {timeAgo(trip.lastPlayed)} · code {trip.gameId}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-text past-trip-forget"
+                  aria-label={`Remove ${trip.name} from this list`}
+                  onClick={() => forgetTripById(trip.gameId)}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="past-trips-hint">Saved on this device only.</p>
+        </section>
+      )}
 
       <details className="restore-section card">
         <summary>Restore from backup file</summary>

@@ -10,6 +10,7 @@ import {
   mergePending,
   removePending,
 } from '../utils/pendingFindings';
+import { forgetTrip, loadTrips, rememberTrip } from '../utils/tripHistory';
 
 const SESSION_KEY = 'plate-game-session';
 
@@ -36,6 +37,7 @@ export function useGame() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [trips, setTrips] = useState(() => loadTrips());
 
   // Last payload the server sent, kept so queued finds can be re-merged onto it
   // without another round trip.
@@ -60,6 +62,16 @@ export function useGame() {
       serverGameRef.current = data;
       pendingRef.current = loadPending(data.id);
       publish(data, pid);
+      // Keep this device's trip list current as the game changes, so the code
+      // is still here after you leave.
+      setTrips(
+        rememberTrip({
+          gameId: data.id,
+          name: data.name,
+          playerName: loadSession()?.playerName,
+          foundCount: data.findings.length,
+        })
+      );
     },
     [publish]
   );
@@ -165,6 +177,16 @@ export function useGame() {
     return data;
   };
 
+  /** Rejoin a trip from this device's history, reusing the name played under. */
+  const resumeTrip = async (trip) => {
+    if (!trip?.gameId) return null;
+    const name = trip.playerName?.trim();
+    if (!name) throw new Error('Join with your name to reopen this trip');
+    return joinExisting(trip.gameId, name);
+  };
+
+  const forgetTripById = (gameId) => setTrips(forgetTrip(gameId));
+
   const leaveGame = () => {
     if (game?.id) clearPending(game.id);
     clearSession();
@@ -262,6 +284,9 @@ export function useGame() {
     setError,
     pendingCount,
     flushPending,
+    trips,
+    resumeTrip,
+    forgetTripById,
     startGame,
     joinExisting,
     leaveGame,
