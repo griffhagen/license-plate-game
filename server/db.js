@@ -1,10 +1,31 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'fs';
+import { homedir } from 'os';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const dbPath = process.env.DATABASE_PATH || join(__dirname, 'plates.db');
+
+/**
+ * Where the game database lives.
+ *
+ * In production the default deliberately sits OUTSIDE the app directory:
+ * hosts that deploy by replacing that directory (Hostinger, most git-deploy
+ * setups) would otherwise erase every trip on each redeploy. Keeping the file
+ * in the home directory means the data survives.
+ *
+ * DATABASE_PATH overrides this. In development the file stays next to the
+ * server code, where it is gitignored and easy to delete.
+ */
+function resolveDbPath() {
+  if (process.env.DATABASE_PATH) return process.env.DATABASE_PATH;
+  if (process.env.NODE_ENV === 'development') return join(__dirname, 'plates.db');
+  const home = homedir();
+  if (home) return join(home, '.license-plate-game', 'plates.db');
+  return join(__dirname, 'plates.db');
+}
+
+const dbPath = resolveDbPath();
 
 const dbDir = dirname(dbPath);
 try {
@@ -14,6 +35,7 @@ try {
 }
 
 const db = new DatabaseSync(dbPath);
+console.log(`Database: ${dbPath}`);
 
 /** node:sqlite reports constraint violations as a generic ERR_SQLITE_ERROR with
  *  the extended result code in `errcode`. Callers branch on better-sqlite3's

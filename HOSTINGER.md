@@ -21,30 +21,27 @@ hPanel → your website → **Advanced** → **Node.js** → **Create applicatio
 |---|---|
 | **Source** | GitHub → `griffhagen/license-plate-game`, branch `main` |
 | **Node version** | **22 or 24** — not 18 or 20 (see Known risks) |
-| **Framework** | Other |
+| **Framework** | Express (or Other) |
 | **Entry file** | `server/index.js` |
-| **Build command** | `npm install --include=dev && npm run build` |
-| **Output directory** | `dist` |
 
-`--include=dev` matters: `vite` is a devDependency, so a production-only install
-leaves the build with nothing to run.
+**There is no build step, by design.** Hostinger cannot build this app: it
+installs with postinstall scripts disabled, which leaves esbuild's binary
+without its executable bit, and it sets `NODE_ENV=production` itself, so npm
+skips the devDependencies `vite` needs. The built client is therefore committed
+to the repo in `dist/`. A deploy only installs dependencies and starts the
+server.
+
+The tradeoff: **run `npm run build` and commit `dist/` whenever you change
+anything under `src/`**, or the deployed site keeps serving the old client.
 
 ## 3. Environment variables
 
-Add one variable, so the game database survives redeploys:
+None are required. The database defaults to `~/.license-plate-game/plates.db` —
+outside the app directory, so redeploys don't erase your trips.
 
-| Key | Value |
-|---|---|
-| `DATABASE_PATH` | `/home/<your-hostinger-user>/plate-data/plates.db` |
-
-Find `<your-hostinger-user>` in hPanel → **Files** → **File Manager** (the path
-above your `public_html`, e.g. `/home/u123456789`). Keep it **outside** the app
-directory — anything inside gets replaced on each deploy.
-
-**Do not set `NODE_ENV=production`.** Hostinger applies env vars at build time
-too, and npm would then skip devDependencies and the build would fail with
-`vite: not found`. The server no longer needs it: it serves `dist/` by default
-and only opts out when `NODE_ENV=development` (which `npm run dev:server` sets).
+Set `DATABASE_PATH` only if you want the file somewhere else. (Note: hPanel's
+environment-variable form has not reliably saved values here, which is exactly
+why the default doesn't depend on it.)
 
 ## 4. Deploy and check
 
