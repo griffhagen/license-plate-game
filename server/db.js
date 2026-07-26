@@ -25,7 +25,7 @@ function resolveDbPath() {
   return join(__dirname, 'plates.db');
 }
 
-const dbPath = resolveDbPath();
+export const dbPath = resolveDbPath();
 
 const dbDir = dirname(dbPath);
 try {

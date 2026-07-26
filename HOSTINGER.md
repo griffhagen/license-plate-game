@@ -43,6 +43,24 @@ Set `DATABASE_PATH` only if you want the file somewhere else. (Note: hPanel's
 environment-variable form has not reliably saved values here, which is exactly
 why the default doesn't depend on it.)
 
+## Backups
+
+The server snapshots its own database once a day into a `backups/` folder next
+to it, keeping 14 days. There is no cron to set up — this host has no reachable
+`crontab`, so the app schedules it internally and checks hourly, meaning a
+restart can't cause a day to be skipped.
+
+Each snapshot is an ordinary SQLite database. To roll back, point
+`DATABASE_PATH` at one, or copy it over the live file while the app is stopped.
+
+For an on-demand snapshot:
+
+```bash
+DATABASE_PATH=~/domains/<your-domain>/.license-plate-game/plates.db node scripts/backup-db.mjs
+```
+
+Tune with `BACKUP_DIR`, `KEEP_DAYS`, or turn it off with `BACKUP_DISABLED=1`.
+
 ## 4. Deploy and check
 
 Deploy, then hit these on your domain:

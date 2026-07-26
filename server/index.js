@@ -6,7 +6,9 @@ import { nanoid } from 'nanoid';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { isValidPlateCode, normalizePlateCode } from '../src/data/registry.js';
+import { scheduleDailyBackup } from './backup.js';
 import {
+  dbPath,
   createGame,
   getGame,
   addPlayer,
@@ -303,4 +305,14 @@ if (isProd) {
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+
+  // Shared hosting here has no reachable cron, so the app keeps its own daily
+  // snapshot. Off in development, and opt-out anywhere via BACKUP_DISABLED=1.
+  if (isProd && process.env.BACKUP_DISABLED !== '1') {
+    scheduleDailyBackup({
+      dbPath,
+      backupDir: process.env.BACKUP_DIR,
+      keepDays: Number(process.env.KEEP_DAYS || 14),
+    });
+  }
 });
