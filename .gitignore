@@ -1,5 +1,8 @@
 node_modules/
-dist/
+# dist/ is committed on purpose: Hostinger installs with postinstall scripts
+# disabled, which leaves esbuild's binary non-executable and makes `vite build`
+# fail on the host. Shipping the built client means deploys only need
+# `npm install` + start. Run `npm run build` before committing client changes.
 server/plates.db
 .DS_Store
 *.log

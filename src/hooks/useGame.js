@@ -71,7 +71,12 @@ export function useGame() {
   useEffect(() => {
     if (!game?.id) return;
     const socket = io({ path: '/socket.io' });
-    socket.emit('game:join', game.id);
+    // Re-join on every connect, not just the first. A dropped connection
+    // reconnects with a new socket id, and rooms are tracked per socket, so
+    // joining once means live updates stop for good after the first blip.
+    // The server replies to game:join with a full game:update, which also
+    // resyncs anything missed while offline.
+    socket.on('connect', () => socket.emit('game:join', game.id));
     socket.on('game:update', (data) => applyGame(data));
     return () => socket.disconnect();
   }, [game?.id, applyGame]);
