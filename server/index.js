@@ -22,7 +22,10 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3001;
-const isProd = process.env.NODE_ENV === 'production';
+// Production by default: some hosts (Hostinger's Node.js app manager, cPanel
+// Passenger) launch server/index.js directly and never set NODE_ENV, and the
+// app must still serve dist/ in that case. Only `npm run dev:server` opts out.
+const isProd = process.env.NODE_ENV !== 'development';
 
 const app = express();
 const httpServer = createServer(app);
@@ -30,6 +33,8 @@ const io = new Server(httpServer, {
   cors: { origin: isProd ? false : ['http://localhost:5173'], methods: ['GET', 'POST'] },
 });
 
+// Shared hosting fronts the Node process with a reverse proxy (LiteSpeed/nginx).
+app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
 

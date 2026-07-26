@@ -61,6 +61,6 @@ npm run plates
 ## Tech stack
 
 - React + Vite + `vite-plugin-pwa`
-- Express + Socket.io + SQLite (`better-sqlite3`)
+- Express + Socket.io + SQLite (`node:sqlite`, built into Node — requires Node 22.13+)
 
 Game data is stored in `server/plates.db`. Each state can only be found once per game (first spot wins).

@@ -74,7 +74,7 @@ To **keep game data** across deploys (paid):
 ## Troubleshooting
 
 - **Build fails with `vite: not found`** — build must install dev deps: `npm install --include=dev && npm run build` (already in `render.yaml`).
-- **Build fails on `better-sqlite3`** — ensure Runtime is **Node** (not Docker static).
+- **`Cannot find module 'node:sqlite'`** — the runtime is older than Node 22.13; check `.nvmrc` / `engines`.
 - **Blank page** — check deploy logs; confirm build finished and `dist/` exists.
 - **WebSockets not updating** — use the Render HTTPS URL, not `http://`.
 - **Location denied on phone** — only works on HTTPS (Render provides this).
